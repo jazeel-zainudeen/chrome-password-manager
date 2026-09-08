@@ -18,6 +18,7 @@
   let credentialsSummary = { matched: [], others: [], all: [] };
   let currentCredentials = [];
   let isPositioning = false;
+  let inputObserver = null;
 
   // Initialize extension context
   async function init() {
@@ -368,8 +369,20 @@
     if (rect.width === 0 || rect.height === 0) return;
 
     const iconSize = 20;
+    
+    const computedStyle = window.getComputedStyle(input);
+    const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
+    
+    // Base offset from the inner right edge
+    let rightOffset = 8;
+    
+    // Password fields often have native 'show password' eye icons on the right edge
+    if (input.type === 'password') {
+      rightOffset = 32;
+    }
+
     const top = rect.top + (rect.height - iconSize) / 2 + window.scrollY;
-    const left = rect.right - iconSize - 6 + window.scrollX;
+    const left = rect.right - borderRight - iconSize - rightOffset + window.scrollX;
 
     icon.style.top = `${top}px`;
     icon.style.left = `${left}px`;
@@ -382,6 +395,26 @@
     if (icon) {
       icon.classList.remove('pw-icon-visible');
     }
+  }
+
+  function observeInputVisibility(input) {
+    if (inputObserver) {
+      inputObserver.disconnect();
+    }
+    if (!window.IntersectionObserver) return;
+    
+    inputObserver = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      // Hide if the input goes out of view, is removed, or is hidden via CSS
+      if (!entry.isIntersecting || !document.body.contains(input)) {
+        hideFieldIcon();
+        hidePickerDropdown();
+      }
+    }, {
+      root: null, // viewport
+      threshold: 0
+    });
+    inputObserver.observe(input);
   }
 
   /**
@@ -397,6 +430,7 @@
 
     currentTargetInput = target;
     positionFieldIcon(target);
+    observeInputVisibility(target);
 
     const ignoreFocus = target.dataset.ignoreFocusOnce === 'true';
     if (ignoreFocus) target.dataset.ignoreFocusOnce = 'false';
@@ -598,6 +632,12 @@
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
+          <button type="button" class="pw-btn-delete" data-action="delete" data-id="${escapeHtml(cred.id)}" title="Delete login">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
           <button type="button" class="pw-btn-fill" data-action="fill" data-id="${escapeHtml(cred.id)}">
             Fill
           </button>
@@ -718,11 +758,24 @@
           await copyToClipboard(cred.password);
           showToast('Password copied to clipboard!');
         }
+      } else if (action === 'delete') {
+        e.stopPropagation();
+        if (cred && confirm(`Delete saved login for ${cred.username || cred.hostname}?`)) {
+          await OmniStorage.deleteCredential(cred.id);
+          showToast('Login deleted');
+          await refreshCredentials();
+          if (dropdownEl && dropdownEl.style.display === 'block') {
+            const searchInput = dropdownEl.querySelector('.pw-search-input');
+            renderDropdownAccounts(dropdownEl, searchInput ? searchInput.value : '');
+          }
+        }
       } else if (action === 'generate') {
         const password = generateStrongPassword();
         if (currentTargetInput) {
-          fillInput(currentTargetInput, password);
-          flashFieldSuccess(currentTargetInput);
+          const { passwordInput } = getRelatedInputs(currentTargetInput);
+          const targetInput = passwordInput || currentTargetInput;
+          fillInput(targetInput, password);
+          flashFieldSuccess(targetInput);
           showToast('Generated strong password inserted!');
         }
         hidePickerDropdown();
@@ -1170,6 +1223,23 @@
       .pw-btn-copy:hover {
         color: #f3f4f6;
         background: #374151;
+      }
+
+      .pw-btn-delete {
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s, background 0.15s;
+      }
+
+      .pw-btn-delete:hover {
+        background: rgba(239, 68, 68, 0.1);
       }
 
       .pw-btn-fill {
