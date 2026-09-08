@@ -669,6 +669,10 @@ body {
   margin-bottom: 12px;
 }
 
+.settings-group:last-child {
+  margin-bottom: 0;
+}
+
 .settings-heading {
   font-size: 11.5px;
   color: var(--text-muted);

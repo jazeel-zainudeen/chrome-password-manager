@@ -31,11 +31,13 @@ async function updateTabBadge(tabId, url) {
   if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
     try {
       await chrome.action.setBadgeText({ tabId, text: '' });
+      await chrome.action.disable(tabId);
     } catch (e) {}
     return;
   }
 
   try {
+    await chrome.action.enable(tabId);
     const creds = await OmniStorage.getCredentialsForUrl(url);
     const parsed = OmniStorage.parseUrl(url);
     const count = creds ? creds.length : 0;
