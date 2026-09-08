@@ -5,17 +5,22 @@
 
 importScripts('/utils/storage.js');
 
-// Seed default demo credentials on install if vault is empty
+// Seed default demo credentials and sync decrypted Chrome passwords on install
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const existing = await OmniStorage.getAllCredentials();
-    if (!existing || existing.length === 0) {
-      for (const cred of (OmniStorage.DEFAULT_SEED_CREDENTIALS || [])) {
-        await OmniStorage.saveCredential(cred);
-      }
-    }
+    await OmniStorage.syncChromePasswords();
+    await OmniStorage.getAllCredentials();
   } catch (err) {
-    console.warn('OmniPass: Failed to seed credentials', err);
+    console.warn('OmniPass: Failed to sync passwords on install', err);
+  }
+});
+
+// Also ensure sync on browser startup
+chrome.runtime.onStartup.addListener(async () => {
+  try {
+    await OmniStorage.syncChromePasswords();
+  } catch (err) {
+    console.warn('OmniPass: Failed to sync on startup', err);
   }
 });
 
