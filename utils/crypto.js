@@ -61,7 +61,8 @@ const OmniCrypto = (() => {
     const remainingLength = Math.max(0, length - guaranteed.length);
     const randomChars = [];
     const randomBuffer = new Uint32Array(remainingLength);
-    window.crypto.getRandomValues(randomBuffer);
+    const cryptoObj = (typeof window !== 'undefined' && window.crypto) ? window.crypto : (typeof self !== 'undefined' && self.crypto ? self.crypto : crypto);
+    cryptoObj.getRandomValues(randomBuffer);
 
     for (let i = 0; i < remainingLength; i++) {
       randomChars.push(charPool[randomBuffer[i] % charPool.length]);
@@ -79,7 +80,8 @@ const OmniCrypto = (() => {
 
   function getRandomChar(str) {
     const buf = new Uint32Array(1);
-    window.crypto.getRandomValues(buf);
+    const cryptoObj = (typeof window !== 'undefined' && window.crypto) ? window.crypto : (typeof self !== 'undefined' && self.crypto ? self.crypto : crypto);
+    cryptoObj.getRandomValues(buf);
     return str[buf[0] % str.length];
   }
 

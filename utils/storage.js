@@ -73,7 +73,8 @@ const OmniStorage = (() => {
    */
   function parseUrl(urlStr) {
     try {
-      const url = new URL(urlStr || window.location.href);
+      const defaultUrl = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : 'http://localhost';
+      const url = new URL(urlStr || defaultUrl);
       return {
         href: url.href,
         origin: url.origin,
@@ -201,7 +202,8 @@ const OmniStorage = (() => {
     const id = cred.id || 'cred_' + Math.random().toString(36).substring(2, 9) + '_' + now;
 
     const existingIndex = vault.findIndex((c) => c.id === id);
-    const parsed = parseUrl(cred.origin || cred.url || window.location.href);
+    const defaultUrl = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : 'http://localhost';
+    const parsed = parseUrl(cred.origin || cred.url || defaultUrl);
 
     const credentialData = {
       id: id,

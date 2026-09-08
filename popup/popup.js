@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateTabBadge() {
     if (currentTab) {
-      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' });
+      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' }).catch(() => {});
     }
   }
 

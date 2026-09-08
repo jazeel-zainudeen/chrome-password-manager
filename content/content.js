@@ -129,8 +129,9 @@
         } else {
           sendResponse({ success: false, error: 'No form input found on page' });
         }
+        return true;
       }
-      return true;
+      return false;
     });
   }
 
@@ -228,6 +229,14 @@
    */
   function suppressNativeAutofill(input) {
     try {
+      if (!input || input.disabled) return;
+      if (input.dataset.omnipassOrigReadonly === undefined) {
+        input.dataset.omnipassOrigReadonly = input.hasAttribute('readonly') ? 'true' : 'false';
+      }
+      if (input.dataset.omnipassOrigReadonly === 'true') {
+        return;
+      }
+
       // 1. Force autocomplete to new-password to stop Chrome's generic popup
       input.setAttribute('autocomplete', 'new-password');
       input.setAttribute('data-lpignore', 'true');
@@ -241,14 +250,16 @@
         input.form.setAttribute('autocomplete', 'off');
       }
 
-      // 2. Readonly trick: prevents Chrome from popping up native suggestion menu on click
+      // 2. Readonly shield: prevents Chrome from popping up native suggestion menu on click
       if (document.activeElement !== input) {
         input.readOnly = true;
       }
 
       const releaseReadOnly = () => {
         setTimeout(() => {
-          input.readOnly = false;
+          if (input.dataset.omnipassOrigReadonly !== 'true') {
+            input.readOnly = false;
+          }
         }, 20);
       };
 
@@ -258,11 +269,15 @@
       input.addEventListener('focus', releaseReadOnly, { capture: true, passive: true });
 
       input.addEventListener('blur', () => {
-        input.readOnly = true;
+        if (input.dataset.omnipassOrigReadonly !== 'true') {
+          input.readOnly = true;
+        }
       }, { capture: true, passive: true });
 
     } catch (e) {
-      console.warn('OmniPass: Failed to suppress native options for input', e);
+      // Guard against any unexpected DOM exceptions
+    }
+  }
     }
   }
 
@@ -887,7 +902,7 @@
     prompt.querySelector('#op-save-btn').onclick = async () => {
       await OmniStorage.saveCredential(cred);
       await refreshCredentials();
-      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' });
+      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' }).catch(() => {});
       dismiss();
       showToast('Login saved to OmniPass!');
     };
