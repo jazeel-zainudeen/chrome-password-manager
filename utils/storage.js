@@ -194,10 +194,23 @@ const OmniStorage = (() => {
     const sortedMatched = matched.map((m) => m.item);
     const sortedOthers = others.sort((a, b) => (b.updatedAt || 0) - (a.item?.updatedAt || 0));
 
+    const seen = new Set();
+    const dedupe = (list) => {
+      return list.filter(item => {
+        const key = `${item.username}\n${item.password}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    const uniqueMatched = dedupe(sortedMatched);
+    const uniqueOthers = dedupe(sortedOthers);
+
     return {
-      matched: sortedMatched,
-      others: sortedOthers,
-      all: [...sortedMatched, ...sortedOthers],
+      matched: uniqueMatched,
+      others: uniqueOthers,
+      all: [...uniqueMatched, ...uniqueOthers],
       info: info
     };
   }
