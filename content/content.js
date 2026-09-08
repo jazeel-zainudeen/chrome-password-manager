@@ -464,31 +464,6 @@
     dropdown.setAttribute('aria-label', 'Password Manager Credential Selector');
 
     let html = `
-      <div class="pw-header">
-        <div class="pw-brand">
-          <div class="pw-logo">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
-            </svg>
-          </div>
-          <span class="pw-title">Password Manager</span>
-        </div>
-        <div class="pw-badge ${isHttp ? 'pw-badge-insecure' : 'pw-badge-secure'}" title="${isHttp ? 'Insecure HTTP site: Password Manager enables password selection here' : 'Secure HTTPS Connection'}">
-          ${isHttp ? `
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-            </svg>
-            <span>HTTP Unlocked</span>
-          ` : `
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            <span>HTTPS</span>
-          `}
-        </div>
-      </div>
 
       <!-- Quick Search Bar -->
       <div class="pw-search-wrap">
@@ -1023,62 +998,6 @@
       .passwords-dropdown.pw-visible {
         opacity: 1;
         transform: translateY(0) scale(1);
-      }
-
-      /* Header */
-      .pw-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 2px 4px 8px 4px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        margin-bottom: 8px;
-      }
-
-      .pw-brand {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .pw-logo {
-        width: 22px;
-        height: 22px;
-        border-radius: 6px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-      }
-
-      .pw-title {
-        font-weight: 600;
-        font-size: 12px;
-        color: #f9fafb;
-        letter-spacing: 0.3px;
-      }
-
-      .pw-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 10px;
-        font-weight: 500;
-        padding: 2px 7px;
-        border-radius: 9999px;
-      }
-
-      .pw-badge-insecure {
-        background: rgba(245, 158, 11, 0.18);
-        color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-      }
-
-      .pw-badge-secure {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.25);
       }
 
       /* Search Box */
