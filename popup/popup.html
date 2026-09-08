@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniPass</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
+          </svg>
+        </div>
+        <span class="brand-name">OmniPass</span>
+      </div>
+      <div class="site-status" id="header-site-badge">
+        <span class="status-dot"></span>
+        <span class="status-text" id="header-site-name">Loading...</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-current">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>This Site</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-vault">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+        <span>Vault</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-generator">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Generator</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Current Site -->
+    <main class="tab-content active" id="tab-current">
+      <div class="site-card" id="current-site-card">
+        <div class="site-card-top">
+          <div class="site-card-info">
+            <span class="site-label">ACTIVE DOMAIN</span>
+            <h2 class="site-domain" id="current-domain-title">example.com</h2>
+          </div>
+          <div class="security-tag" id="current-security-tag">
+            <span>Secure</span>
+          </div>
+        </div>
+        <p class="site-insecure-note" id="current-insecure-note" style="display: none;">
+          ⚡ Chrome suppresses autofill on HTTP sites. OmniPass active for this domain.
+        </p>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">Saved Logins</span>
+        <button type="button" class="btn-xs btn-primary" id="btn-show-add-current">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add New
+        </button>
+      </div>
+
+      <!-- Add/Edit form inline -->
+      <form class="credential-form" id="form-current-add" style="display: none;">
+        <div class="form-title" id="form-title-text">New Login</div>
+        <div class="form-group">
+          <label>Username / Email</label>
+          <input type="text" id="input-username" placeholder="user@example.com" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="input-password" placeholder="Password" required autocomplete="off">
+            <button type="button" class="btn-icon" id="btn-toggle-input-pass" title="Toggle visibility">👁</button>
+            <button type="button" class="btn-icon" id="btn-fill-generated" title="Insert generated password">⚡</button>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-cred">Save Login</button>
+        </div>
+      </form>
+
+      <!-- Current credentials list -->
+      <div class="cred-cards" id="current-creds-container">
+        <!-- Injected dynamically -->
+      </div>
+    </main>
+
+    <!-- Tab 2: Vault (All credentials) -->
+    <section class="tab-content" id="tab-vault">
+      <div class="vault-search-bar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="vault-search-input" placeholder="Search logins, domains...">
+      </div>
+
+      <div class="vault-filters">
+        <button class="filter-chip active" data-filter="all">All (<span id="count-all">0</span>)</button>
+        <button class="filter-chip" data-filter="insecure">HTTP / Insecure (<span id="count-insecure">0</span>)</button>
+        <button class="filter-chip" data-filter="secure">HTTPS (<span id="count-secure">0</span>)</button>
+      </div>
+
+      <div class="cred-cards" id="all-creds-container">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+    <!-- Tab 3: Password Generator -->
+    <section class="tab-content" id="tab-generator">
+      <div class="generator-card">
+        <div class="password-display-box">
+          <div class="password-display" id="gen-result">••••••••••••••••</div>
+          <button class="btn-icon copy-large" id="btn-copy-generated" title="Copy to clipboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="strength-meter">
+          <div class="strength-bar-track">
+            <div class="strength-bar-fill" id="gen-strength-fill" style="width: 80%; background-color: #10B981;"></div>
+          </div>
+          <div class="strength-meta">
+            <span>Strength: <strong id="gen-strength-text">Strong</strong></span>
+            <span id="gen-length-indicator">16 characters</span>
+          </div>
+        </div>
+
+        <div class="generator-controls">
+          <div class="control-row slider-row">
+            <div class="slider-label">Length</div>
+            <input type="range" id="gen-length-slider" min="8" max="48" value="16" class="slider">
+          </div>
+
+          <div class="toggle-grid">
+            <label class="toggle-item">
+              <input type="checkbox" id="gen-upper" checked>
+              <span class="toggle-label">A-Z (Uppercase)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="gen-lower" checked>
+              <span class="toggle-label">a-z (Lowercase)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="gen-numbers" checked>
+              <span class="toggle-label">0-9 (Numbers)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="gen-symbols" checked>
+              <span class="toggle-label">!@#$ (Symbols)</span>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-regenerate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Generate New Password
+        </button>
+      </div>
+    </section>
+
+    <!-- Tab 4: Settings -->
+    <section class="tab-content" id="tab-settings">
+      <div class="settings-group">
+        <h3 class="settings-heading">Insecure Site (HTTP) Behavior</h3>
+        
+        <label class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Enable on Insecure HTTP Sites</div>
+            <div class="setting-desc">Bypasses Chrome's block and provides password selection on HTTP & dev servers.</div>
+          </div>
+          <input type="checkbox" id="setting-enable-http" checked class="switch">
+        </label>
+
+        <label class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Show In-Page Dropdown on Focus</div>
+            <div class="setting-desc">Automatically display matching credentials when clicking username/password fields.</div>
+          </div>
+          <input type="checkbox" id="setting-auto-suggest" checked class="switch">
+        </label>
+
+        <label class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Prompt to Save on Submit</div>
+            <div class="setting-desc">Show prompt to remember credentials after form submission.</div>
+          </div>
+          <input type="checkbox" id="setting-prompt-save" checked class="switch">
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-heading">Vault Data & Backup</h3>
+        <div class="backup-actions">
+          <button class="btn btn-secondary" id="btn-export-vault">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export JSON
+          </button>
+          <label class="btn btn-secondary file-upload-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Import JSON
+            <input type="file" id="input-import-file" accept=".json" style="display: none;">
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global Toast Notification -->
+    <div class="popup-toast" id="popup-toast"></div>
+  </div>
+
+  <script src="../utils/storage.js"></script>
+  <script src="../utils/crypto.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
