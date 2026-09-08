@@ -64,7 +64,9 @@
     fieldIcon.setAttribute('title', 'Password Manager: Show saved logins');
     fieldIcon.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-3 7-3 3 0 5 2 7 3a1 1 0 0 1 1 1v7z"/>
+        <circle cx="12" cy="11" r="1"/>
+        <path d="M12 12v2.5"/>
       </svg>
     `;
     fieldIcon.addEventListener('click', (e) => {
