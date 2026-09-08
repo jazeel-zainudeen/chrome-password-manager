@@ -9,6 +9,7 @@ import http.server
 import socketserver
 import os
 import sys
+sys.dont_write_bytecode = True
 
 DEFAULT_PORT = 8899
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT
