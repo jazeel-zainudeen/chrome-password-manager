@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniPass</title>
+  <title>Password Manager</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
             <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
           </svg>
         </div>
-        <span class="brand-name">OmniPass</span>
+        <span class="brand-name">Password Manager</span>
       </div>
       <div class="site-status" id="header-site-badge">
         <span class="status-dot"></span>
@@ -70,7 +70,7 @@
           </div>
         </div>
         <p class="site-insecure-note" id="current-insecure-note" style="display: none;">
-          ⚡ Chrome suppresses autofill on HTTP sites. OmniPass active for this domain.
+          ⚡ Chrome suppresses autofill on HTTP sites. Password Manager active for this domain.
         </p>
       </div>
 
@@ -111,9 +111,9 @@
 
     <!-- Tab 2: Vault (All credentials) -->
     <section class="tab-content" id="tab-vault">
-      <div class="vault-top-actions">
+      <div class="vault-tpw-actions">
         <span class="vault-title">Saved Logins</span>
-        <button type="button" class="btn-xs btn-primary" id="btn-sync-chrome-vault" title="Sync all decrypted Chrome passwords into OmniPass">
+        <button type="button" class="btn-xs btn-primary" id="btn-sync-chrome-vault" title="Sync all decrypted Chrome passwords into Password Manager">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -234,7 +234,7 @@
         <label class="setting-row">
           <div class="setting-info">
             <div class="setting-title">Hide Native Chrome Options</div>
-            <div class="setting-desc">Suppresses Chrome's native autofill popup so only OmniPass appears.</div>
+            <div class="setting-desc">Suppresses Chrome's native autofill popup so only Password Manager appears.</div>
           </div>
           <input type="checkbox" id="setting-hide-native" checked class="switch">
         </label>

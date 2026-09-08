@@ -1,4 +1,4 @@
-# OmniPass 🔑
+# Password Manager 🔑
 > **Modern, lightweight Chrome extension replacing the generic saved password picker with full support for insecure HTTP sites, local dev servers, and internal networks.**
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-6366F1?style=flat-square)](https://developer.chrome.com/docs/extensions/mv3/intro/)
@@ -7,7 +7,7 @@
 
 ---
 
-## ⚡ The Problem OmniPass Solves
+## ⚡ The Problem Password Manager Solves
 
 In modern Google Chrome, the native password manager **strictly suppresses password auto-suggestion and autofill dropdowns on unencrypted (`http://`) origins**, displaying warnings like *"Password form on an insecure (http://) page"*.
 
@@ -16,7 +16,7 @@ While this policy protects public web traffic, it causes constant friction for:
 - **Network & System Administrators:** Managing internal routers, switches, IoT web interfaces (`http://192.168.1.1`, firewall consoles).
 - **Enterprise Users:** Accessing internal legacy tools or staging clusters without TLS/HTTPS certificates.
 
-**OmniPass eliminates this limitation.** It provides a standalone, lightweight in-page credential picker and autofill manager that operates seamlessly across both `http://*` and `https://*` origins.
+**Password Manager eliminates this limitation.** It provides a standalone, lightweight in-page credential picker and autofill manager that operates seamlessly across both `http://*` and `https://*` origins.
 
 ---
 
@@ -41,7 +41,7 @@ While this policy protects public web traffic, it causes constant friction for:
 ## 📂 Project Structure
 
 ```
-omnipass/
+passwords/
 ├── manifest.json              # Manifest V3 configuration & permissions
 ├── icons/                     # Extension icons (16px, 48px, 128px)
 │   ├── icon16.png
@@ -73,15 +73,15 @@ omnipass/
      chrome://extensions
      ```
 2. **Enable Developer Mode:**
-   - Toggle the **Developer mode** switch in the top-right corner.
+   - Toggle the **Developer mode** switch in the tpw-right corner.
 3. **Load Unpacked Extension:**
-   - Click the **Load unpacked** button in the top-left corner.
+   - Click the **Load unpacked** button in the tpw-left corner.
    - Select the directory:
      ```text
-     /home/jazeel/Projects/omnipass
+     /home/jazeel/Projects/passwords
      ```
-4. **Pin OmniPass:**
-   - Click Chrome's puzzle icon (Extensions) on the top toolbar and pin **OmniPass** for easy access.
+4. **Pin Password Manager:**
+   - Click Chrome's puzzle icon (Extensions) on the top toolbar and pin **Password Manager** for easy access.
 
 ---
 
@@ -91,7 +91,7 @@ To immediately verify that password selection and autofill work on an insecure H
 
 1. **Start the Test Server:**
    ```bash
-   cd /home/jazeel/Projects/omnipass/test-page
+   cd /home/jazeel/Projects/passwords/test-page
    python3 server.py
    ```
 2. **Open the Test Page:**
@@ -99,15 +99,15 @@ To immediately verify that password selection and autofill work on an insecure H
 3. **Verify:**
    - Notice the connection is plain `http://` (unencrypted).
    - Click inside the **Username** or **Password** input field.
-   - The **OmniPass Floating Picker** will appear anchored to the input, displaying the `HTTP Unlocked` status badge and the preloaded demo account (`admin / Password123!`).
+   - The **Password Manager Floating Picker** will appear anchored to the input, displaying the `HTTP Unlocked` status badge and the preloaded demo account (`admin / Password123!`).
    - Click **Fill** to autofill both fields with a subtle green success glow.
-   - Click **Sign In** or submit custom credentials to see the **Save to OmniPass** floating banner in the upper right.
+   - Click **Sign In** or submit custom credentials to see the **Save to Password Manager** floating banner in the upper right.
 
 ---
 
 ## ⚙️ Settings & Configuration
 
-In the OmniPass popup under the **Settings** tab:
+In the Password Manager popup under the **Settings** tab:
 - **Enable on Insecure HTTP Sites:** Toggle on/off to control whether the in-page picker activates on unencrypted HTTP domains.
 - **Show In-Page Dropdown on Focus:** Toggle automatic dropdown display when clicking input fields.
 - **Prompt to Save on Submit:** Toggle the notification prompt after submitting login forms.

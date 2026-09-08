@@ -1,12 +1,12 @@
 /**
- * OmniPass Storage & Domain Utility
+ * Passwords Storage & Domain Utility
  * Handles credential persistence, smart origin matching, and settings.
  */
 
 const OmniStorage = (() => {
-  const STORAGE_KEY_VAULT = 'omnipass_vault';
-  const STORAGE_KEY_SETTINGS = 'omnipass_settings';
-  const STORAGE_KEY_CHROME_SYNC = 'omnipass_chrome_synced_v5';
+  const STORAGE_KEY_VAULT = 'passwords_vault';
+  const STORAGE_KEY_SETTINGS = 'passwords_settings';
+  const STORAGE_KEY_CHROME_SYNC = 'passwords_chrome_synced_v5';
 
   const DEFAULT_SETTINGS = {
     enableOnHttp: true,
@@ -121,7 +121,7 @@ const OmniStorage = (() => {
               vault = updated;
             }
           } catch (e) {
-            console.warn('OmniPass: Automatic Chrome password sync skipped', e);
+            console.warn('Passwords: Automatic Chrome password sync skipped', e);
           }
         }
 
@@ -404,7 +404,7 @@ const OmniStorage = (() => {
         });
       });
     } catch (err) {
-      console.warn('OmniPass: Failed to sync Chrome passwords', err);
+      console.warn('Passwords: Failed to sync Chrome passwords', err);
       return { success: false, error: err.message };
     }
   }

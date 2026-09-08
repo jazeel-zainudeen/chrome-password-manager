@@ -1,5 +1,5 @@
 /**
- * OmniPass Background Service Worker
+ * Passwords Background Service Worker
  * Manages tab updates, badge indicators, and message dispatch.
  */
 
@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     await OmniStorage.syncChromePasswords();
     await OmniStorage.getAllCredentials();
   } catch (err) {
-    console.warn('OmniPass: Failed to sync passwords on install', err);
+    console.warn('Passwords: Failed to sync passwords on install', err);
   }
 });
 
@@ -20,7 +20,7 @@ chrome.runtime.onStartup.addListener(async () => {
   try {
     await OmniStorage.syncChromePasswords();
   } catch (err) {
-    console.warn('OmniPass: Failed to sync on startup', err);
+    console.warn('Passwords: Failed to sync on startup', err);
   }
 });
 
