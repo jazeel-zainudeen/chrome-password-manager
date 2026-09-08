@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingEnableHttp = document.getElementById('setting-enable-http');
   const settingAutoSuggest = document.getElementById('setting-auto-suggest');
   const settingPromptSave = document.getElementById('setting-prompt-save');
+  const settingHideNative = document.getElementById('setting-hide-native');
   const btnExportVault = document.getElementById('btn-export-vault');
   const inputImportFile = document.getElementById('input-import-file');
 
@@ -375,15 +376,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Settings Handlers
   async function loadSettings() {
     const settings = await OmniStorage.getSettings();
-    settingEnableHttp.checked = settings.enableOnHttp;
-    settingAutoSuggest.checked = settings.autoSuggestOnFocus;
-    settingPromptSave.checked = settings.promptToSaveOnSubmit;
+    settingEnableHttp.checked = settings.enableOnHttp !== false;
+    settingAutoSuggest.checked = settings.autoSuggestOnFocus !== false;
+    settingPromptSave.checked = settings.promptToSaveOnSubmit !== false;
+    if (settingHideNative) {
+      settingHideNative.checked = settings.hideNativeOptions !== false;
+    }
 
     const update = async () => {
       await OmniStorage.saveSettings({
         enableOnHttp: settingEnableHttp.checked,
         autoSuggestOnFocus: settingAutoSuggest.checked,
-        promptToSaveOnSubmit: settingPromptSave.checked
+        promptToSaveOnSubmit: settingPromptSave.checked,
+        hideNativeOptions: settingHideNative ? settingHideNative.checked : true
       });
       showToast('Settings saved');
     };
@@ -391,6 +396,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     settingEnableHttp.addEventListener('change', update);
     settingAutoSuggest.addEventListener('change', update);
     settingPromptSave.addEventListener('change', update);
+    if (settingHideNative) {
+      settingHideNative.addEventListener('change', update);
+    }
   }
 
   // Export Vault

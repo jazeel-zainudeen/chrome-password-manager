@@ -1,7 +1,8 @@
 /**
  * OmniPass Content Script
  * Provides in-page credential dropdown, autofill, inline field trigger,
- * and save-on-submit prompt - fully operational on insecure HTTP and HTTPS.
+ * complete suppression of native browser autofill options,
+ * and reliable password options for insecure HTTP and HTTPS.
  */
 
 (function () {
@@ -14,6 +15,7 @@
   let shadowRoot = null;
   let containerEl = null;
   let settings = null;
+  let credentialsSummary = { matched: [], others: [], all: [] };
   let currentCredentials = [];
   let isPositioning = false;
 
@@ -68,6 +70,7 @@
       e.preventDefault();
       e.stopPropagation();
       if (currentTargetInput) {
+        currentTargetInput.readOnly = false;
         currentTargetInput.focus();
         if (activeDropdown) {
           hidePickerDropdown();
@@ -82,12 +85,14 @@
   }
 
   /**
-   * Refreshes credentials matching the current URL.
+   * Refreshes credentials matching the current URL and all vault accounts.
    */
   async function refreshCredentials() {
     try {
-      currentCredentials = await OmniStorage.getCredentialsForUrl(window.location.href);
+      credentialsSummary = await OmniStorage.getCredentialsSummaryForUrl(window.location.href);
+      currentCredentials = credentialsSummary.all || [];
     } catch (e) {
+      credentialsSummary = { matched: [], others: [], all: [] };
       currentCredentials = [];
     }
   }
@@ -96,7 +101,13 @@
    * Attaches focus, click, and input listeners.
    */
   function attachGlobalListeners() {
-    // Focus in handler for inputs
+    // Early suppression on mousedown/pointerdown before browser evaluates focus
+    document.addEventListener('mousedown', (e) => {
+      if (isTargetInput(e.target) && settings && settings.hideNativeOptions !== false) {
+        suppressNativeAutofill(e.target);
+      }
+    }, true);
+
     document.addEventListener('focusin', onInputFocus, true);
     document.addEventListener('click', onDocumentClick, true);
     document.addEventListener('keydown', onKeyDown, true);
@@ -128,10 +139,7 @@
    */
   function observeDomChanges() {
     const observer = new MutationObserver(() => {
-      // Re-attach inline icons if enabled
-      if (settings && settings.showInlineIcon) {
-        decorateInputs();
-      }
+      decorateInputs();
     });
 
     observer.observe(document.body || document.documentElement, {
@@ -139,9 +147,7 @@
       subtree: true
     });
 
-    if (settings && settings.showInlineIcon) {
-      decorateInputs();
-    }
+    decorateInputs();
   }
 
   /**
@@ -163,7 +169,6 @@
       if (/user|login|email|account|usr|identifier/i.test(name) || /user|login|email|account|usr|identifier/i.test(id)) {
         return true;
       }
-      // Or if it shares a form with a password field
       if (el.form && el.form.querySelector('input[type="password"]')) {
         return true;
       }
@@ -181,7 +186,6 @@
     let passwordInput = null;
 
     if (!form) {
-      // Look in closest container or document
       const container = target.closest('form, div[role="form"], main, .login, .auth, body') || document;
       const inputs = Array.from(container.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"])'));
       passwordInput = inputs.find(i => (i.type || '').toLowerCase() === 'password');
@@ -202,14 +206,86 @@
   }
 
   /**
-   * Adds modern inline key badges to inputs.
+   * Hides native browser options and decorates inputs.
    */
   function decorateInputs() {
-    const inputs = document.querySelectorAll('input[type="password"], input[type="email"], input[autocomplete*="username"]');
+    const inputs = document.querySelectorAll('input');
     inputs.forEach(input => {
+      if (!isTargetInput(input)) return;
       if (input.dataset.omnipassDecorated) return;
       input.dataset.omnipassDecorated = 'true';
+
+      if (settings && settings.hideNativeOptions !== false) {
+        suppressNativeAutofill(input);
+      }
     });
+
+    injectGlobalSuppressionStyles();
+  }
+
+  /**
+   * Completely suppresses Chrome's native autofill/autocomplete dropdowns.
+   */
+  function suppressNativeAutofill(input) {
+    try {
+      // 1. Force autocomplete to new-password to stop Chrome's generic popup
+      input.setAttribute('autocomplete', 'new-password');
+      input.setAttribute('data-lpignore', 'true');
+      input.setAttribute('data-1p-ignore', 'true');
+      input.setAttribute('data-bwignore', 'true');
+      input.setAttribute('aria-autocomplete', 'none');
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('spellcheck', 'false');
+
+      if (input.form) {
+        input.form.setAttribute('autocomplete', 'off');
+      }
+
+      // 2. Readonly trick: prevents Chrome from popping up native suggestion menu on click
+      if (document.activeElement !== input) {
+        input.readOnly = true;
+      }
+
+      const releaseReadOnly = () => {
+        setTimeout(() => {
+          input.readOnly = false;
+        }, 20);
+      };
+
+      input.addEventListener('pointerdown', releaseReadOnly, { capture: true, passive: true });
+      input.addEventListener('mousedown', releaseReadOnly, { capture: true, passive: true });
+      input.addEventListener('touchstart', releaseReadOnly, { capture: true, passive: true });
+      input.addEventListener('focus', releaseReadOnly, { capture: true, passive: true });
+
+      input.addEventListener('blur', () => {
+        input.readOnly = true;
+      }, { capture: true, passive: true });
+
+    } catch (e) {
+      console.warn('OmniPass: Failed to suppress native options for input', e);
+    }
+  }
+
+  /**
+   * Injects CSS rule to hide Chrome's internal auto-fill icons.
+   */
+  function injectGlobalSuppressionStyles() {
+    if (document.getElementById('omnipass-native-suppression-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'omnipass-native-suppression-styles';
+    style.textContent = `
+      input::-webkit-credentials-auto-fill-button,
+      input::-webkit-contacts-auto-fill-button,
+      input::-webkit-caps-lock-indicator {
+        visibility: hidden !important;
+        display: none !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        width: 0 !important;
+        margin: 0 !important;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
   }
 
   /**
@@ -247,6 +323,10 @@
     const target = e.target;
     if (!isTargetInput(target)) return;
 
+    if (settings && settings.hideNativeOptions !== false) {
+      suppressNativeAutofill(target);
+    }
+
     currentTargetInput = target;
     positionFieldIcon(target);
     await refreshCredentials();
@@ -281,7 +361,7 @@
   }
 
   /**
-   * Render and show the credential picker dropdown.
+   * Render and show the credential picker dropdown with valid options.
    */
   function showPickerDropdown(input) {
     if (!shadowRoot) return;
@@ -308,7 +388,7 @@
           </div>
           <span class="op-title">OmniPass</span>
         </div>
-        <div class="op-badge ${isHttp ? 'op-badge-insecure' : 'op-badge-secure'}" title="${isHttp ? 'Insecure HTTP site: OmniPass bypasses native Chrome block' : 'Secure HTTPS Connection'}">
+        <div class="op-badge ${isHttp ? 'op-badge-insecure' : 'op-badge-secure'}" title="${isHttp ? 'Insecure HTTP site: OmniPass enables password selection here' : 'Secure HTTPS Connection'}">
           ${isHttp ? `
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -324,54 +404,22 @@
           `}
         </div>
       </div>
-    `;
 
-    if (currentCredentials.length > 0) {
-      html += `<div class="op-section-label">Logins for ${hostname}${port}</div>`;
-      html += `<div class="op-creds-list">`;
-      currentCredentials.forEach((cred, idx) => {
-        html += `
-          <div class="op-cred-item" data-index="${idx}" tabindex="0">
-            <div class="op-cred-avatar">
-              ${(cred.username ? cred.username[0] : 'U').toUpperCase()}
-            </div>
-            <div class="op-cred-info">
-              <div class="op-cred-user">${escapeHtml(cred.username || 'No username')}</div>
-              <div class="op-cred-pass">••••••••</div>
-            </div>
-            <div class="op-cred-actions">
-              <button type="button" class="op-btn-copy" data-action="copy" data-index="${idx}" title="Copy password">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-              <button type="button" class="op-btn-fill" data-action="fill" data-index="${idx}">
-                Fill
-              </button>
-            </div>
-          </div>
-        `;
-      });
-      html += `</div>`;
-    } else {
-      html += `
-        <div class="op-empty-state">
-          <div class="op-empty-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
-          <div class="op-empty-text">No saved logins for <strong>${escapeHtml(hostname)}</strong></div>
-          <div class="op-empty-sub">Add a credential or generate a strong password below.</div>
-        </div>
-      `;
-    }
+      <!-- Quick Search Bar -->
+      <div class="op-search-wrap">
+        <svg class="op-search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="op-search-filter" class="op-search-filter" placeholder="Search or choose account..." autocomplete="off" spellcheck="false">
+      </div>
 
-    // Quick Actions footer
-    html += `
+      <!-- Accounts List Container -->
+      <div class="op-creds-container" id="op-creds-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Quick Actions footer -->
       <div class="op-footer">
         <button type="button" class="op-action-btn" data-action="generate">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -384,7 +432,7 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Add Login
+          Save This Login
         </button>
       </div>
     `;
@@ -393,9 +441,126 @@
     wrapper.appendChild(dropdown);
     activeDropdown = dropdown;
 
+    // Render account items
+    renderDropdownAccounts(dropdown, '');
+
     // Attach interaction handlers
     attachDropdownEvents(dropdown);
     positionDropdown(dropdown, input);
+  }
+
+  /**
+   * Generates HTML for account items with search filtering.
+   */
+  function renderDropdownAccounts(dropdown, filterText = '') {
+    const container = dropdown.querySelector('#op-creds-container');
+    if (!container) return;
+
+    const q = (filterText || '').trim().toLowerCase();
+    const hostname = window.location.hostname || 'this site';
+    const port = window.location.port ? `:${window.location.port}` : '';
+
+    const matched = (credentialsSummary.matched || []).filter(c => matchesQuery(c, q));
+    const others = (credentialsSummary.others || []).filter(c => matchesQuery(c, q));
+    const all = (credentialsSummary.all || []).filter(c => matchesQuery(c, q));
+
+    let html = '';
+
+    if (q) {
+      // Searching across all vault items
+      if (all.length > 0) {
+        html += `<div class="op-group-title">Search Results (${all.length})</div>`;
+        html += `<div class="op-creds-list">`;
+        all.forEach(cred => {
+          html += renderCredentialItemHtml(cred, true);
+        });
+        html += `</div>`;
+      } else {
+        html += `
+          <div class="op-empty-state">
+            <div class="op-empty-text">No logins match "<strong>${escapeHtml(filterText)}</strong>"</div>
+            <div class="op-empty-sub">Use 'Save This Login' below to remember this account.</div>
+          </div>
+        `;
+      }
+    } else {
+      // Normal display
+      if (matched.length > 0) {
+        html += `<div class="op-group-title">Logins for ${escapeHtml(hostname)}${port}</div>`;
+        html += `<div class="op-creds-list">`;
+        matched.forEach(cred => {
+          html += renderCredentialItemHtml(cred, false);
+        });
+        html += `</div>`;
+
+        if (others.length > 0) {
+          html += `<div class="op-group-title" style="margin-top: 6px;">All Vault Logins (${others.length})</div>`;
+          html += `<div class="op-creds-list">`;
+          others.forEach(cred => {
+            html += renderCredentialItemHtml(cred, true);
+          });
+          html += `</div>`;
+        }
+      } else if (all.length > 0) {
+        html += `
+          <div class="op-domain-notice">
+            No specific login for <strong>${escapeHtml(hostname)}</strong> yet. Select a saved account from your vault:
+          </div>
+          <div class="op-group-title">Vault Accounts (${all.length})</div>
+          <div class="op-creds-list">
+        `;
+        all.forEach(cred => {
+          html += renderCredentialItemHtml(cred, true);
+        });
+        html += `</div>`;
+      } else {
+        html += `
+          <div class="op-empty-state">
+            <div class="op-empty-text">Your vault is ready</div>
+            <div class="op-empty-sub">Enter your login and click 'Save This Login' below.</div>
+          </div>
+        `;
+      }
+    }
+
+    container.innerHTML = html;
+  }
+
+  function matchesQuery(cred, q) {
+    if (!q) return true;
+    const u = (cred.username || '').toLowerCase();
+    const h = (cred.hostname || '').toLowerCase();
+    const t = (cred.title || '').toLowerCase();
+    return u.includes(q) || h.includes(q) || t.includes(q);
+  }
+
+  function renderCredentialItemHtml(cred, showOriginBadge) {
+    const firstLetter = (cred.username ? cred.username[0] : 'U').toUpperCase();
+    return `
+      <div class="op-cred-item" data-id="${escapeHtml(cred.id)}" tabindex="0">
+        <div class="op-cred-avatar">
+          ${firstLetter}
+        </div>
+        <div class="op-cred-info">
+          <div class="op-cred-user-row">
+            <span class="op-cred-user">${escapeHtml(cred.username || 'No username')}</span>
+            ${showOriginBadge && cred.hostname ? `<span class="op-origin-tag" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
+          </div>
+          <div class="op-cred-pass" data-pass="${escapeHtml(cred.password)}" title="Click to reveal">••••••••</div>
+        </div>
+        <div class="op-cred-actions">
+          <button type="button" class="op-btn-copy" data-action="copy" data-id="${escapeHtml(cred.id)}" title="Copy password">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+          <button type="button" class="op-btn-fill" data-action="fill" data-id="${escapeHtml(cred.id)}">
+            Fill
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -404,7 +569,7 @@
   function positionDropdown(dropdown, input) {
     if (!dropdown || !input) return;
     const rect = input.getBoundingClientRect();
-    const dropdownHeight = dropdown.offsetHeight || 220;
+    const dropdownHeight = dropdown.offsetHeight || 260;
     const dropdownWidth = 320;
 
     let top = rect.bottom + 6;
@@ -412,7 +577,6 @@
 
     // Collision detection: Check if it overflows viewport bottom
     if (rect.bottom + dropdownHeight > window.innerHeight) {
-      // Place above input
       top = Math.max(10, rect.top - dropdownHeight - 6);
     }
 
@@ -459,41 +623,76 @@
   }
 
   /**
-   * Handles click actions inside the picker dropdown.
+   * Handles click and search events inside the picker dropdown.
    */
   function attachDropdownEvents(dropdown) {
+    // Search input listener
+    const searchInput = dropdown.querySelector('#op-search-filter');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        renderDropdownAccounts(dropdown, e.target.value);
+      });
+      // Prevent keydown inside search from closing picker or bubbling to host
+      searchInput.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Escape') {
+          hidePickerDropdown();
+        }
+      });
+    }
+
     dropdown.addEventListener('click', async (e) => {
+      // Toggle password reveal
+      const passEl = e.target.closest('.op-cred-pass');
+      if (passEl) {
+        e.stopPropagation();
+        const rawPass = passEl.dataset.pass;
+        if (passEl.textContent.includes('•')) {
+          passEl.textContent = rawPass;
+          passEl.style.letterSpacing = 'normal';
+        } else {
+          passEl.textContent = '••••••••';
+          passEl.style.letterSpacing = '1px';
+        }
+        return;
+      }
+
       const target = e.target.closest('[data-action], .op-cred-item');
       if (!target) return;
 
       const action = target.dataset.action;
-      const index = target.dataset.index;
+      const credId = target.dataset.id || target.closest('.op-cred-item')?.dataset.id;
+      const cred = currentCredentials.find(c => c.id === credId);
 
       if (action === 'fill' || target.classList.contains('op-cred-item')) {
-        const credIdx = parseInt(target.dataset.index ?? target.closest('.op-cred-item')?.dataset.index, 10);
-        if (!isNaN(credIdx) && currentCredentials[credIdx]) {
-          fillCredential(currentCredentials[credIdx]);
+        if (cred) {
+          fillCredential(cred);
           hidePickerDropdown();
         }
       } else if (action === 'copy') {
         e.stopPropagation();
-        const credIdx = parseInt(index, 10);
-        if (!isNaN(credIdx) && currentCredentials[credIdx]) {
-          await copyToClipboard(currentCredentials[credIdx].password);
+        if (cred) {
+          await copyToClipboard(cred.password);
           showToast('Password copied to clipboard!');
         }
       } else if (action === 'generate') {
         const password = generateStrongPassword();
         if (currentTargetInput) {
           fillInput(currentTargetInput, password);
-          showToast('Generated password filled!');
+          flashFieldSuccess(currentTargetInput);
+          showToast('Generated strong password inserted!');
         }
         hidePickerDropdown();
       } else if (action === 'add-current') {
         const { usernameInput, passwordInput } = getRelatedInputs(currentTargetInput);
         const uVal = usernameInput ? usernameInput.value : '';
         const pVal = passwordInput ? passwordInput.value : '';
-        
+
+        if (!pVal && !uVal) {
+          showToast('Please enter credentials in the form first');
+          return;
+        }
+
         await OmniStorage.saveCredential({
           origin: window.location.origin,
           hostname: window.location.hostname,
@@ -527,7 +726,6 @@
       flashFieldSuccess(passwordInput);
     }
 
-    // Record last used
     if (cred.id) {
       OmniStorage.markLastUsed(cred.id);
     }
@@ -539,6 +737,7 @@
    * Sets value and triggers input / change events so React/Vue/vanilla frameworks react.
    */
   function fillInput(input, value) {
+    input.readOnly = false;
     input.focus();
     
     // React value setter hack for synthetic event dispatch
@@ -551,6 +750,8 @@
 
     input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
   }
 
   /**
@@ -673,7 +874,6 @@
 
     shadowRoot.appendChild(prompt);
 
-    // Animate in
     requestAnimationFrame(() => {
       prompt.classList.add('op-prompt-visible');
     });
@@ -692,7 +892,6 @@
       showToast('Login saved to OmniPass!');
     };
 
-    // Auto dismiss after 15s
     setTimeout(dismiss, 15000);
   }
 
@@ -738,7 +937,7 @@
       /* Dropdown Main */
       .omnipass-dropdown {
         position: absolute;
-        width: 310px;
+        width: 320px;
         background: #111827;
         color: #f3f4f6;
         border-radius: 12px;
@@ -762,9 +961,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 4px 6px 8px 6px;
+        padding: 2px 4px 8px 4px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
 
       .op-brand {
@@ -813,37 +1012,84 @@
         border: 1px solid rgba(16, 185, 129, 0.25);
       }
 
-      .op-section-label {
-        font-size: 11px;
+      /* Search Box */
+      .op-search-wrap {
+        position: relative;
+        margin-bottom: 8px;
+      }
+
+      .op-search-filter {
+        width: 100%;
+        background: #1f2937;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 7px;
+        color: #f9fafb;
+        padding: 6px 10px 6px 26px;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      .op-search-filter:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+      }
+
+      .op-search-icon {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
         color: #9ca3af;
-        padding: 4px 6px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      /* Section & Group Titles */
+      .op-group-title {
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 4px 6px 3px 6px;
+      }
+
+      .op-domain-notice {
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 7px;
+        padding: 7px 9px;
+        font-size: 11.5px;
+        color: #c7d2fe;
+        margin-bottom: 6px;
+        line-height: 1.35;
       }
 
       /* Credential Items List */
-      .op-creds-list {
-        max-height: 200px;
+      .op-creds-container {
+        max-height: 220px;
         overflow-y: auto;
+      }
+
+      .op-creds-container::-webkit-scrollbar {
+        width: 4px;
+      }
+      .op-creds-container::-webkit-scrollbar-thumb {
+        background: #374151;
+        border-radius: 4px;
+      }
+
+      .op-creds-list {
         display: flex;
         flex-direction: column;
         gap: 4px;
-      }
-
-      .op-creds-list::-webkit-scrollbar {
-        width: 4px;
-      }
-      .op-creds-list::-webkit-scrollbar-thumb {
-        background: #374151;
-        border-radius: 4px;
       }
 
       .op-cred-item {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 7px 8px;
+        padding: 6px 8px;
         border-radius: 8px;
         background: #1f2937;
         cursor: pointer;
@@ -876,6 +1122,12 @@
         min-width: 0;
       }
 
+      .op-cred-user-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
       .op-cred-user {
         font-weight: 500;
         color: #f3f4f6;
@@ -885,10 +1137,27 @@
         text-overflow: ellipsis;
       }
 
+      .op-origin-tag {
+        font-size: 9px;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #9ca3af;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .op-cred-pass {
         color: #9ca3af;
         font-size: 11px;
         letter-spacing: 1px;
+        cursor: pointer;
+      }
+
+      .op-cred-pass:hover {
+        color: #e5e7eb;
       }
 
       .op-cred-actions {
@@ -933,14 +1202,9 @@
 
       /* Empty State */
       .op-empty-state {
-        padding: 16px 8px;
+        padding: 14px 8px;
         text-align: center;
         color: #9ca3af;
-      }
-
-      .op-empty-icon {
-        color: #6b7280;
-        margin-bottom: 6px;
       }
 
       .op-empty-text {
@@ -984,6 +1248,35 @@
       .op-action-btn:hover {
         background: #374151;
         color: #ffffff;
+      }
+
+      /* Inline Field Trigger Icon */
+      .op-field-icon {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background: #1f2937;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #818cf8;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2147483646;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+        transition: all 0.15s ease;
+        pointer-events: auto;
+      }
+
+      .op-field-icon:hover {
+        background: #374151;
+        color: #a5b4fc;
+        transform: scale(1.08);
+      }
+
+      .op-field-icon.op-icon-visible {
+        display: flex;
       }
 
       /* Save Prompt Toast */
@@ -1077,35 +1370,6 @@
 
       .op-btn-primary:hover {
         background: #4f46e5;
-      }
-
-      /* Inline Field Trigger Icon */
-      .op-field-icon {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border-radius: 5px;
-        background: #1f2937;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        color: #818cf8;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 2147483646;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-        transition: all 0.15s ease;
-        pointer-events: auto;
-      }
-
-      .op-field-icon:hover {
-        background: #374151;
-        color: #a5b4fc;
-        transform: scale(1.08);
-      }
-
-      .op-field-icon.op-icon-visible {
-        display: flex;
       }
 
       /* Notification Toast */

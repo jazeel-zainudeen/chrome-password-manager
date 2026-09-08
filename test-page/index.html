@@ -257,6 +257,32 @@
         <div id="login-feedback" class="status-msg"></div>
       </div>
 
+      <!-- Demo Login Form 2: Staging Server Login -->
+      <div class="card">
+        <div class="card-title">
+          <span>🔒 Staging / Internal Service Login</span>
+        </div>
+        <div class="card-desc">
+          Test with search or pick from all vault logins. Notice native Chrome options are completely hidden.
+        </div>
+
+        <form id="demo-staging-form" onsubmit="handleStagingSubmit(event)">
+          <div class="form-group">
+            <label for="staging-user">Account Identifier</label>
+            <input type="text" id="staging-user" name="identifier" placeholder="dev_user">
+          </div>
+
+          <div class="form-group">
+            <label for="staging-pass">Secret Key / Password</label>
+            <input type="password" id="staging-pass" name="secret" placeholder="••••••••••••">
+          </div>
+
+          <button type="submit" class="btn-submit">Authenticate</button>
+        </form>
+
+        <div id="staging-feedback" class="status-msg"></div>
+      </div>
+
       <!-- Instructions Section -->
       <div class="instructions-card">
         <h3>🚀 How to verify OmniPass:</h3>
@@ -292,6 +318,26 @@
 
       feedback.className = 'status-msg success';
       feedback.textContent = `✓ Form submitted successfully for user "${u}". Check top-right corner if prompted to save new password!`;
+    }
+
+    function handleStagingSubmit(e) {
+      e.preventDefault();
+      const u = document.getElementById('staging-user').value;
+      const p = document.getElementById('staging-pass').value;
+      const feedback = document.getElementById('staging-feedback');
+
+      if (!u || !p) {
+        feedback.className = 'status-msg';
+        feedback.style.display = 'block';
+        feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+        feedback.style.border = '1px solid #ef4444';
+        feedback.style.color = '#fca5a5';
+        feedback.textContent = 'Please enter both identifier and password.';
+        return;
+      }
+
+      feedback.className = 'status-msg success';
+      feedback.textContent = `✓ Authenticated staging account "${u}".`;
     }
   </script>
 </body>

@@ -9,38 +9,7 @@ importScripts('../utils/storage.js');
 chrome.runtime.onInstalled.addListener(async (details) => {
   const existing = await OmniStorage.getAllCredentials();
   if (!existing || existing.length === 0) {
-    const sampleCredentials = [
-      {
-        id: 'sample_localhost',
-        title: 'Local Dev Server',
-        origin: 'http://localhost:8080',
-        hostname: 'localhost',
-        protocol: 'http:',
-        port: '8080',
-        isInsecure: true,
-        username: 'admin',
-        password: 'Password123!',
-        notes: 'Demo credential for local HTTP test',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      },
-      {
-        id: 'sample_router',
-        title: 'Local Router Admin',
-        origin: 'http://192.168.1.1',
-        hostname: '192.168.1.1',
-        protocol: 'http:',
-        port: '80',
-        isInsecure: true,
-        username: 'admin',
-        password: 'RouterSecurityPass2026',
-        notes: 'Legacy HTTP router login',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      }
-    ];
-
-    for (const cred of sampleCredentials) {
+    for (const cred of (OmniStorage.DEFAULT_SEED_CREDENTIALS || [])) {
       await OmniStorage.saveCredential(cred);
     }
   }
