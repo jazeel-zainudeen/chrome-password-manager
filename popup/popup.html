@@ -111,6 +111,18 @@
 
     <!-- Tab 2: Vault (All credentials) -->
     <section class="tab-content" id="tab-vault">
+      <div class="vault-top-actions">
+        <span class="vault-title">Saved Logins</span>
+        <button type="button" class="btn-xs btn-primary" id="btn-sync-chrome-vault" title="Sync all decrypted Chrome passwords into OmniPass">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Sync Chrome Passwords
+        </button>
+      </div>
+
       <div class="vault-search-bar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
@@ -229,16 +241,26 @@
       </div>
 
       <div class="settings-group">
-        <h3 class="settings-heading">Vault Data & Backup</h3>
-        <div class="backup-actions">
-          <button class="btn btn-secondary" id="btn-export-vault">
+        <h3 class="settings-heading">Vault Data & Chrome Sync</h3>
+        <button type="button" class="btn btn-primary btn-block" id="btn-sync-chrome-settings" style="margin-bottom: 8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Sync Decrypted Chrome Passwords (97)
+        </button>
+
+        <div class="backup-actions" style="margin-bottom: 8px;">
+          <label class="btn btn-secondary file-upload-btn" title="Import CSV exported from chrome://password-manager">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Export JSON
-          </button>
+            Import CSV
+            <input type="file" id="input-import-csv" accept=".csv" style="display: none;">
+          </label>
           <label class="btn btn-secondary file-upload-btn">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -249,6 +271,15 @@
             <input type="file" id="input-import-file" accept=".json" style="display: none;">
           </label>
         </div>
+
+        <button type="button" class="btn btn-secondary btn-block" id="btn-export-vault">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export Vault (JSON)
+        </button>
       </div>
     </section>
 

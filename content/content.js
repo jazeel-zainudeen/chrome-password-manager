@@ -152,25 +152,53 @@
   }
 
   /**
-   * Identifies login-related inputs (password or username/email).
+   * Checks if an element is a search bar, token, or non-login field.
    */
-  function isTargetInput(el) {
-    if (!el || el.tagName !== 'INPUT') return false;
+  function isExcludedField(el) {
+    if (!el) return true;
+    const name = (el.name || '').toLowerCase();
+    const id = (el.id || '').toLowerCase();
+    const type = (el.type || '').toLowerCase();
+    const role = (el.getAttribute('role') || '').toLowerCase();
+
+    if (['hidden', 'submit', 'button', 'reset', 'checkbox', 'radio', 'file', 'image'].includes(type)) return true;
+    if (role === 'search') return true;
+
+    return /search|query|csrf|token|captcha|otp|code|auth\[server\]|auth\[db\]/i.test(name) ||
+           /search|query|csrf|token|captcha|otp|code/i.test(id);
+  }
+
+  /**
+   * Checks if an input is explicitly for username, email, or login account.
+   */
+  function isExplicitUsernameInput(el) {
+    if (!el || el.tagName !== 'INPUT' || isExcludedField(el)) return false;
     const type = (el.type || 'text').toLowerCase();
     const autocomplete = (el.getAttribute('autocomplete') || '').toLowerCase();
     const name = (el.name || '').toLowerCase();
     const id = (el.id || '').toLowerCase();
 
-    if (type === 'password') return true;
-
-    // Check if input is a likely username/email field
     if (autocomplete.includes('username') || autocomplete.includes('email')) return true;
     if (type === 'email') return true;
-    if (type === 'text') {
-      if (/user|login|email|account|usr|identifier/i.test(name) || /user|login|email|account|usr|identifier/i.test(id)) {
-        return true;
-      }
-      if (el.form && el.form.querySelector('input[type="password"]')) {
+
+    return /user|login|email|account|usr|uname|identifier|auth\[user/i.test(name) ||
+           /user|login|email|account|usr|uname|identifier/i.test(id);
+  }
+
+  /**
+   * Identifies login-related inputs (password or username/email).
+   */
+  function isTargetInput(el) {
+    if (!el || el.tagName !== 'INPUT' || isExcludedField(el)) return false;
+    const type = (el.type || 'text').toLowerCase();
+
+    if (type === 'password') return true;
+    if (isExplicitUsernameInput(el)) return true;
+
+    // Fallback: If input is in a form that has a password input, check if it's text/empty
+    if (type === 'text' || !el.hasAttribute('type')) {
+      const form = el.form || el.closest('form, div[role="form"], main, .login, .auth');
+      if (form && form.querySelector('input[type="password"]')) {
         return true;
       }
     }
@@ -182,25 +210,46 @@
    * Finds related username & password inputs within the same form/context.
    */
   function getRelatedInputs(target) {
-    let form = target.form;
-    let usernameInput = null;
-    let passwordInput = null;
+    const form = target.form || target.closest('form, div[role="form"], main, .login, .auth, body') || document;
+    const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"])'));
 
-    if (!form) {
-      const container = target.closest('form, div[role="form"], main, .login, .auth, body') || document;
-      const inputs = Array.from(container.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"])'));
-      passwordInput = inputs.find(i => (i.type || '').toLowerCase() === 'password');
-      usernameInput = inputs.find(i => isTargetInput(i) && (i.type || '').toLowerCase() !== 'password');
-    } else {
-      passwordInput = form.querySelector('input[type="password"]');
-      const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"])'));
-      usernameInput = inputs.find(i => isTargetInput(i) && (i.type || '').toLowerCase() !== 'password');
+    let passwordInput = (target.type === 'password') ? target : inputs.find(i => (i.type || '').toLowerCase() === 'password');
+    let usernameInput = null;
+
+    if (target !== passwordInput && (isExplicitUsernameInput(target) || isTargetInput(target))) {
+      usernameInput = target;
     }
 
-    if (target.type === 'password') {
-      passwordInput = target;
-    } else if (isTargetInput(target)) {
-      usernameInput = target;
+    if (!usernameInput && passwordInput) {
+      // 1. First priority: input with explicit username/email markers
+      usernameInput = inputs.find(i => i !== passwordInput && isExplicitUsernameInput(i));
+
+      // 2. Second priority: the text input immediately preceding the password input in DOM order
+      if (!usernameInput) {
+        const passIndex = inputs.indexOf(passwordInput);
+        for (let i = passIndex - 1; i >= 0; i--) {
+          const cand = inputs[i];
+          if (!isExcludedField(cand) && cand !== passwordInput) {
+            usernameInput = cand;
+            break;
+          }
+        }
+      }
+
+      // 3. Third priority: any candidate input that is not the password field
+      if (!usernameInput) {
+        usernameInput = inputs.find(i => i !== passwordInput && isTargetInput(i));
+      }
+    }
+
+    if (!passwordInput && usernameInput) {
+      const userIndex = inputs.indexOf(usernameInput);
+      for (let i = userIndex + 1; i < inputs.length; i++) {
+        if ((inputs[i].type || '').toLowerCase() === 'password') {
+          passwordInput = inputs[i];
+          break;
+        }
+      }
     }
 
     return { usernameInput, passwordInput };
@@ -276,8 +325,6 @@
 
     } catch (e) {
       // Guard against any unexpected DOM exceptions
-    }
-  }
     }
   }
 

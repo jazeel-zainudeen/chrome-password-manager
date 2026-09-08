@@ -6,6 +6,7 @@
 const OmniStorage = (() => {
   const STORAGE_KEY_VAULT = 'omnipass_vault';
   const STORAGE_KEY_SETTINGS = 'omnipass_settings';
+  const STORAGE_KEY_CHROME_SYNC = 'omnipass_chrome_synced_v5';
 
   const DEFAULT_SETTINGS = {
     enableOnHttp: true,
@@ -98,16 +99,32 @@ const OmniStorage = (() => {
   }
 
   /**
-   * Retrieves all credentials from local storage (auto-seeds defaults if empty).
+   * Retrieves all credentials from local storage (auto-seeds and imports Chrome passwords).
    */
   async function getAllCredentials() {
     return new Promise((resolve) => {
-      chrome.storage.local.get([STORAGE_KEY_VAULT], async (result) => {
+      chrome.storage.local.get([STORAGE_KEY_VAULT, STORAGE_KEY_CHROME_SYNC], async (result) => {
         let vault = result[STORAGE_KEY_VAULT];
+        const hasSynced = result[STORAGE_KEY_CHROME_SYNC];
+
         if (!Array.isArray(vault) || vault.length === 0) {
           vault = [...DEFAULT_SEED_CREDENTIALS];
           await new Promise((r) => chrome.storage.local.set({ [STORAGE_KEY_VAULT]: vault }, r));
         }
+
+        // Auto-sync decrypted Chrome passwords on initial run or update
+        if (!hasSynced) {
+          try {
+            const syncRes = await syncChromePasswords();
+            if (syncRes && syncRes.success) {
+              const updated = await new Promise((r) => chrome.storage.local.get([STORAGE_KEY_VAULT], res => r(res[STORAGE_KEY_VAULT] || vault)));
+              vault = updated;
+            }
+          } catch (e) {
+            console.warn('OmniPass: Automatic Chrome password sync skipped', e);
+          }
+        }
+
         resolve(vault);
       });
     });
@@ -335,6 +352,169 @@ const OmniStorage = (() => {
     }
   }
 
+  /**
+   * Syncs decrypted Chrome passwords from bundled chrome_passwords.json into the vault.
+   */
+  async function syncChromePasswords() {
+    try {
+      const url = chrome.runtime.getURL('chrome_passwords.json');
+      const res = await fetch(url);
+      if (!res.ok) {
+        return { success: false, error: 'Could not load chrome_passwords.json' };
+      }
+      const chromeItems = await res.json();
+      if (!Array.isArray(chromeItems) || chromeItems.length === 0) {
+        return { success: false, error: 'Empty or invalid chrome_passwords.json' };
+      }
+
+      return new Promise((resolve) => {
+        chrome.storage.local.get([STORAGE_KEY_VAULT], async (result) => {
+          let vault = Array.isArray(result[STORAGE_KEY_VAULT]) ? [...result[STORAGE_KEY_VAULT]] : [];
+          let added = 0;
+          let updated = 0;
+
+          const seenMap = new Map();
+          vault.forEach((item, idx) => {
+            const key = `${(item.origin || item.hostname || '').toLowerCase()}|${(item.username || '').toLowerCase()}`;
+            seenMap.set(key, idx);
+          });
+
+          for (const item of chromeItems) {
+            const key = `${(item.origin || item.hostname || '').toLowerCase()}|${(item.username || '').toLowerCase()}`;
+            if (seenMap.has(key)) {
+              const idx = seenMap.get(key);
+              // Update if incoming item has a valid password
+              if (item.password && (!vault[idx].password || vault[idx].password.includes('\u001d') || vault[idx].password.includes('\u020b') || vault[idx].password !== item.password)) {
+                vault[idx] = { ...vault[idx], ...item };
+                updated++;
+              }
+            } else {
+              vault.push(item);
+              seenMap.set(key, vault.length - 1);
+              added++;
+            }
+          }
+
+          chrome.storage.local.set({
+            [STORAGE_KEY_VAULT]: vault,
+            [STORAGE_KEY_CHROME_SYNC]: true
+          }, () => {
+            resolve({ success: true, count: chromeItems.length, added, updated, total: vault.length });
+          });
+        });
+      });
+    } catch (err) {
+      console.warn('OmniPass: Failed to sync Chrome passwords', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Robust CSV parser handling quotes and multiline values.
+   */
+  function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let cell = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (inQuotes) {
+        if (char === '"') {
+          if (nextChar === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          cell += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          row.push(cell.trim());
+          cell = '';
+        } else if (char === '\r') {
+          // ignore
+        } else if (char === '\n') {
+          row.push(cell.trim());
+          if (row.some(c => c.length > 0)) {
+            rows.push(row);
+          }
+          row = [];
+          cell = '';
+        } else {
+          cell += char;
+        }
+      }
+    }
+    if (cell.length > 0 || row.length > 0) {
+      row.push(cell.trim());
+      if (row.some(c => c.length > 0)) {
+        rows.push(row);
+      }
+    }
+    return rows;
+  }
+
+  /**
+   * Imports Chrome's standard exported password CSV (name,url,username,password,note).
+   */
+  async function importChromeCsv(csvText) {
+    try {
+      const rows = parseCsv(csvText);
+      if (!rows || rows.length < 2) {
+        return { success: false, error: 'CSV file is empty or has no data rows' };
+      }
+
+      const headers = rows[0].map(h => h.toLowerCase().trim());
+      const nameIdx = headers.indexOf('name');
+      const urlIdx = headers.indexOf('url');
+      const userIdx = headers.indexOf('username');
+      const passIdx = headers.indexOf('password');
+      const noteIdx = headers.indexOf('note');
+
+      if (urlIdx === -1 || (userIdx === -1 && passIdx === -1)) {
+        return { success: false, error: 'Unrecognized CSV format. Expected Chrome headers: name,url,username,password,note' };
+      }
+
+      let count = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const rawUrl = urlIdx >= 0 ? r[urlIdx] : '';
+        const user = userIdx >= 0 ? r[userIdx] : '';
+        const pass = passIdx >= 0 ? r[passIdx] : '';
+        const title = nameIdx >= 0 && r[nameIdx] ? r[nameIdx] : '';
+        const note = noteIdx >= 0 ? r[noteIdx] : '';
+
+        if (!rawUrl && !user && !pass) continue;
+
+        const parsed = parseUrl(rawUrl);
+        await saveCredential({
+          title: title || parsed.hostname || 'Chrome Login',
+          origin: parsed.origin,
+          hostname: parsed.hostname,
+          protocol: parsed.protocol,
+          port: parsed.port,
+          isInsecure: parsed.isInsecure,
+          username: user,
+          password: pass,
+          notes: note ? `Synced: ${note}` : 'Imported from Chrome CSV'
+        });
+        count++;
+      }
+
+      return { success: true, count };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
   return {
     parseUrl,
     isLocalHost,
@@ -349,6 +529,8 @@ const OmniStorage = (() => {
     saveSettings,
     exportVault,
     importVault,
+    syncChromePasswords,
+    importChromeCsv,
     DEFAULT_SETTINGS,
     DEFAULT_SEED_CREDENTIALS
   };

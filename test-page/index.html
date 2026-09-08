@@ -283,6 +283,42 @@
         <div id="staging-feedback" class="status-msg"></div>
       </div>
 
+      <!-- Demo Login Form 3: Adminer / Database Manager Style Login -->
+      <div class="card">
+        <div class="card-title">
+          <span>🗄️ Database Management Login (Adminer / PHP Style)</span>
+        </div>
+        <div class="card-desc">
+          Simulates complex multi-field legacy PHP forms (e.g. <code>auth[server]</code>, <code>auth[username]</code>, <code>auth[password]</code>, <code>auth[db]</code>). Notice OmniPass targets the correct username field instead of the server field!
+        </div>
+
+        <form id="demo-adminer-form" onsubmit="handleAdminerSubmit(event)">
+          <div class="form-group">
+            <label for="auth-server">Server</label>
+            <input type="text" id="auth-server" name="auth[server]" placeholder="localhost" value="localhost">
+          </div>
+
+          <div class="form-group">
+            <label for="auth-username">Username</label>
+            <input type="text" id="auth-username" name="auth[username]" placeholder="bobsdev">
+          </div>
+
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" name="auth[password]" placeholder="••••••••••••">
+          </div>
+
+          <div class="form-group">
+            <label for="auth-db">Database</label>
+            <input type="text" id="auth-db" name="auth[db]" placeholder="test_db">
+          </div>
+
+          <button type="submit" class="btn-submit">Login to Adminer</button>
+        </form>
+
+        <div id="adminer-feedback" class="status-msg"></div>
+      </div>
+
       <!-- Instructions Section -->
       <div class="instructions-card">
         <h3>🚀 How to verify OmniPass:</h3>
@@ -338,6 +374,26 @@
 
       feedback.className = 'status-msg success';
       feedback.textContent = `✓ Authenticated staging account "${u}".`;
+    }
+
+    function handleAdminerSubmit(e) {
+      e.preventDefault();
+      const u = document.getElementById('auth-username').value;
+      const p = document.getElementById('auth-password').value;
+      const feedback = document.getElementById('adminer-feedback');
+
+      if (!u || !p) {
+        feedback.className = 'status-msg';
+        feedback.style.display = 'block';
+        feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+        feedback.style.border = '1px solid #ef4444';
+        feedback.style.color = '#fca5a5';
+        feedback.textContent = 'Please enter Adminer username and password.';
+        return;
+      }
+
+      feedback.className = 'status-msg success';
+      feedback.textContent = `✓ Logged in as "${u}". Notice OmniPass preserved server and db fields correctly!`;
     }
   </script>
 </body>

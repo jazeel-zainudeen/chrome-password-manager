@@ -492,6 +492,19 @@ body {
 }
 
 /* Vault Search & Filters */
+.vault-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.vault-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
 .vault-search-bar {
   display: flex;
   align-items: center;

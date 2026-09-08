@@ -414,7 +414,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('Vault exported successfully');
   });
 
-  // Import Vault
+  // Sync Chrome Passwords
+  const btnSyncChromeVault = document.getElementById('btn-sync-chrome-vault');
+  const btnSyncChromeSettings = document.getElementById('btn-sync-chrome-settings');
+  const inputImportCsv = document.getElementById('input-import-csv');
+
+  async function handleSyncChrome() {
+    showToast('Syncing Chrome passwords...');
+    const res = await OmniStorage.syncChromePasswords();
+    if (res.success) {
+      showToast(`Synced ${res.count} Chrome passwords!`);
+      await renderCurrentSiteCredentials();
+      await renderVaultList();
+      updateTabBadge();
+    } else {
+      showToast('Sync error: ' + (res.error || 'unknown'));
+    }
+  }
+
+  if (btnSyncChromeVault) {
+    btnSyncChromeVault.addEventListener('click', handleSyncChrome);
+  }
+  if (btnSyncChromeSettings) {
+    btnSyncChromeSettings.addEventListener('click', handleSyncChrome);
+  }
+
+  // Import Chrome CSV
+  if (inputImportCsv) {
+    inputImportCsv.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const result = await OmniStorage.importChromeCsv(event.target.result);
+        if (result.success) {
+          showToast(`Imported ${result.count} accounts from CSV!`);
+          renderCurrentSiteCredentials();
+          renderVaultList();
+          updateTabBadge();
+        } else {
+          alert('CSV Import error: ' + result.error);
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  // Import Vault (JSON)
   inputImportFile.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
