@@ -1,5 +1,5 @@
 /**
- * OmniPass Popup UI Controller
+ * Passwords Popup UI Controller
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `omnipass-vault-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `passwords-vault-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('Vault exported successfully');

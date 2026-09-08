@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP test server for OmniPass.
+Simple HTTP test server for Passwords.
 Serves the test login page on http://localhost:8899 (unencrypted HTTP)
 to demonstrate password picking and autofill functionality on insecure origins.
 """
@@ -23,7 +23,7 @@ def run():
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"=====================================================")
-        print(f"  OmniPass HTTP Insecure Test Server Running!       ")
+        print(f"  Passwords HTTP Insecure Test Server Running!       ")
         print(f"  URL: http://localhost:{PORT}/index.html           ")
         print(f"=====================================================")
         print(f"Press Ctrl+C to stop.")

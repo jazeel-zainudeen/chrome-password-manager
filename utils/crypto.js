@@ -1,5 +1,5 @@
 /**
- * OmniPass Password Generator & Security Utilities
+ * Passwords Password Generator & Security Utilities
  */
 
 const OmniCrypto = (() => {

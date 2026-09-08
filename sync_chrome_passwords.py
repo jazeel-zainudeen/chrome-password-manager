@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-OmniPass Chrome Password Sync Utility
+Passwords Chrome Password Sync Utility
 Extracts and decrypts saved passwords from Google Chrome's local database
-and exports them to chrome_passwords.json for seamless use in OmniPass.
+and exports them to chrome_passwords.json for seamless use in Passwords.
 """
 
 import sqlite3

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "OmniPass - Insecure & HTTP Password Picker",
+  "name": "Password Manager",
   "version": "1.0.0",
   "description": "Modern, lightweight password picker & autofill that works on insecure HTTP sites, localhost, and internal networks.",
   "permissions": [

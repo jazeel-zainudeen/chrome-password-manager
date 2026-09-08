@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniPass Test Lab - Insecure HTTP Login Demo</title>
+  <title>Passwords Test Lab - Insecure HTTP Login Demo</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -219,15 +219,15 @@
         </svg>
         Unencrypted Insecure Connection (HTTP)
       </div>
-      <h1>OmniPass Insecure Origin Test Lab</h1>
+      <h1>Passwords Insecure Origin Test Lab</h1>
       <p class="subtitle">
         Testing password selection, autofill, and credentials capture on non-HTTPS origins where native Chrome suppresses password managers.
       </p>
     </header>
 
     <div class="alert-box">
-      <strong>Notice Chrome's Default Behavior:</strong> In regular Chrome without OmniPass, clicking these password fields shows <em>"Password form on an insecure (http://) page"</em> and suppresses native password suggestions.<br>
-      <strong>With OmniPass:</strong> Focus or click the fields below to see the modern OmniPass dropdown, one-click fill, and instant password generation!
+      <strong>Notice Chrome's Default Behavior:</strong> In regular Chrome without Passwords, clicking these password fields shows <em>"Password form on an insecure (http://) page"</em> and suppresses native password suggestions.<br>
+      <strong>With Passwords:</strong> Focus or click the fields below to see the modern Passwords dropdown, one-click fill, and instant password generation!
     </div>
 
     <div class="demo-grid">
@@ -237,7 +237,7 @@
           <span>🛠️ Local Router / Dev Server Login</span>
         </div>
         <div class="card-desc">
-          Click inside the username or password field. OmniPass will automatically present saved accounts (e.g. <code>admin / Password123!</code>) or allow generating a strong password.
+          Click inside the username or password field. Passwords will automatically present saved accounts (e.g. <code>admin / Password123!</code>) or allow generating a strong password.
         </div>
 
         <form id="demo-login-form" onsubmit="handleDemoSubmit(event)">
@@ -289,7 +289,7 @@
           <span>🗄️ Database Management Login (Adminer / PHP Style)</span>
         </div>
         <div class="card-desc">
-          Simulates complex multi-field legacy PHP forms (e.g. <code>auth[server]</code>, <code>auth[username]</code>, <code>auth[password]</code>, <code>auth[db]</code>). Notice OmniPass targets the correct username field instead of the server field!
+          Simulates complex multi-field legacy PHP forms (e.g. <code>auth[server]</code>, <code>auth[username]</code>, <code>auth[password]</code>, <code>auth[db]</code>). Notice Passwords targets the correct username field instead of the server field!
         </div>
 
         <form id="demo-adminer-form" onsubmit="handleAdminerSubmit(event)">
@@ -321,15 +321,15 @@
 
       <!-- Instructions Section -->
       <div class="instructions-card">
-        <h3>🚀 How to verify OmniPass:</h3>
+        <h3>🚀 How to verify Passwords:</h3>
         <ol>
           <li>Open <strong>chrome://extensions</strong>, turn on <strong>Developer Mode</strong>, and click <strong>Load unpacked</strong>.</li>
-          <li>Select the <code>/home/jazeel/Projects/omnipass</code> directory.</li>
+          <li>Select the <code>/home/jazeel/Projects/passwords</code> directory.</li>
           <li>Load this test page over <code>http://localhost:8899/index.html</code>.</li>
-          <li>Click on the username or password input above: <strong>OmniPass floating picker appears instantly</strong>!</li>
+          <li>Click on the username or password input above: <strong>Passwords floating picker appears instantly</strong>!</li>
           <li>Click <strong>Fill</strong> to populate both fields with proper input events.</li>
-          <li>Try typing a new username/password and submitting: <strong>OmniPass prompts to remember the new login</strong>.</li>
-          <li>Open the OmniPass extension popup to browse all vault items, generate passwords, and manage settings.</li>
+          <li>Try typing a new username/password and submitting: <strong>Passwords prompts to remember the new login</strong>.</li>
+          <li>Open the Passwords extension popup to browse all vault items, generate passwords, and manage settings.</li>
         </ol>
       </div>
     </div>
@@ -353,7 +353,7 @@
       }
 
       feedback.className = 'status-msg success';
-      feedback.textContent = `✓ Form submitted successfully for user "${u}". Check top-right corner if prompted to save new password!`;
+      feedback.textContent = `✓ Form submitted successfully for user "${u}". Check tpw-right corner if prompted to save new password!`;
     }
 
     function handleStagingSubmit(e) {
@@ -393,7 +393,7 @@
       }
 
       feedback.className = 'status-msg success';
-      feedback.textContent = `✓ Logged in as "${u}". Notice OmniPass preserved server and db fields correctly!`;
+      feedback.textContent = `✓ Logged in as "${u}". Notice Passwords preserved server and db fields correctly!`;
     }
   </script>
 </body>
