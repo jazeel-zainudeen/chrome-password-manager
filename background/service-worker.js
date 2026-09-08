@@ -3,7 +3,7 @@
  * Manages tab updates, badge indicators, and message dispatch.
  */
 
-importScripts('../utils/storage.js');
+importScripts('/utils/storage.js');
 
 // Seed default demo credentials on install if vault is empty
 chrome.runtime.onInstalled.addListener(async () => {
