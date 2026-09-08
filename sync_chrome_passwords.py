@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import sys
+sys.dont_write_bytecode = True
 from urllib.parse import urlparse
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
