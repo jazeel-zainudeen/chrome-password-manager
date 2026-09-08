@@ -226,6 +226,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnDelete.addEventListener('click', async () => {
       if (confirm(`Delete saved login for ${cred.username || cred.hostname}?`)) {
         await OmniStorage.deleteCredential(cred.id);
+        
+        if (currentTab && currentUrlInfo?.origin === cred.origin) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: currentTab.id },
+              func: () => {
+                if (window.PasswordCredential && navigator.credentials) {
+                  navigator.credentials.preventSilentAccess().catch(e => console.warn(e));
+                }
+              }
+            });
+          } catch (err) {
+            console.warn("Failed to prevent silent access via Credential Management API", err);
+          }
+        }
+
         showToast('Login deleted');
         renderCurrentSiteCredentials();
         renderVaultList();
@@ -319,6 +335,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       username,
       password
     });
+
+    if (currentTab && currentUrlInfo && currentUrlInfo.origin) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: currentTab.id },
+          func: (u, p) => {
+            if (window.PasswordCredential && navigator.credentials) {
+              const googleCred = new PasswordCredential({ id: u || 'unknown', password: p, name: u });
+              navigator.credentials.store(googleCred).catch(e => console.warn(e));
+            }
+          },
+          args: [username, password]
+        });
+      } catch (err) {
+        console.warn("Failed to sync to Google Password Manager via popup", err);
+      }
+    }
 
     formCurrentAdd.reset();
     formCurrentAdd.style.display = 'none';

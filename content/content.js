@@ -464,6 +464,19 @@
         hideFieldIcon();
       }
     }
+
+    const target = e.target;
+    if (target && target.closest) {
+      const btn = target.closest('button, input[type="submit"], [role="button"]');
+      if (btn) {
+        const type = (btn.type || '').toLowerCase();
+        const text = (btn.textContent || btn.value || '').toLowerCase();
+        if (type === 'submit' || text.includes('login') || text.includes('sign in') || text.includes('submit') || text.includes('continue')) {
+          const container = btn.closest('form, div[role="form"], .login, .auth, main') || document;
+          checkAndPromptSave(container);
+        }
+      }
+    }
   }
 
   /**
@@ -475,6 +488,13 @@
       if (currentTargetInput) {
         currentTargetInput.dataset.ignoreFocusOnce = 'true';
         currentTargetInput.focus();
+      }
+    }
+    if (e.key === 'Enter') {
+      const target = e.target;
+      if (target && target.tagName === 'INPUT') {
+        const container = target.closest('form, div[role="form"], .login, .auth, main') || document;
+        checkAndPromptSave(container);
       }
     }
   }
@@ -762,6 +782,13 @@
         e.stopPropagation();
         if (cred && confirm(`Delete saved login for ${cred.username || cred.hostname}?`)) {
           await OmniStorage.deleteCredential(cred.id);
+          try {
+            if (window.PasswordCredential && navigator.credentials) {
+              await navigator.credentials.preventSilentAccess();
+            }
+          } catch (err) {
+            console.warn("Failed to prevent silent access via Credential Management API", err);
+          }
           showToast('Login deleted');
           await refreshCredentials();
           if (dropdownEl && dropdownEl.style.display === 'block') {
@@ -797,6 +824,19 @@
           username: uVal,
           password: pVal
         });
+
+        try {
+          if (window.PasswordCredential && navigator.credentials) {
+            const googleCred = new PasswordCredential({
+              id: uVal || 'unknown',
+              password: pVal,
+              name: uVal
+            });
+            await navigator.credentials.store(googleCred);
+          }
+        } catch (err) {
+          console.warn("Failed to save to Google Password Manager", err);
+        }
 
         await refreshCredentials();
         showToast('Login saved for this site!');
@@ -900,15 +940,11 @@
     }
   }
 
-  /**
-   * Prompt user to save credentials after submitting a form.
-   */
-  function onFormSubmit(e) {
+  function checkAndPromptSave(container) {
     if (!settings || !settings.promptToSaveOnSubmit) return;
-    const form = e.target;
-    if (!form || !form.querySelector) return;
+    if (!container || !container.querySelector) return;
 
-    const passwordInput = form.querySelector('input[type="password"]');
+    const passwordInput = container.querySelector('input[type="password"]');
     if (!passwordInput || !passwordInput.value) return;
 
     const { usernameInput } = getRelatedInputs(passwordInput);
@@ -932,6 +968,10 @@
         password
       });
     }
+  }
+
+  function onFormSubmit(e) {
+    checkAndPromptSave(e.target);
   }
 
   /**
@@ -969,7 +1009,12 @@
       </div>
     `;
 
-    shadowRoot.appendChild(prompt);
+    const wrapper = shadowRoot.getElementById('passwords-wrapper');
+    if (wrapper) {
+      wrapper.appendChild(prompt);
+    } else {
+      shadowRoot.appendChild(prompt);
+    }
 
     requestAnimationFrame(() => {
       prompt.classList.add('pw-prompt-visible');
@@ -983,6 +1028,20 @@
     prompt.querySelector('#pw-dismiss-btn').onclick = dismiss;
     prompt.querySelector('#pw-save-btn').onclick = async () => {
       await OmniStorage.saveCredential(cred);
+      
+      try {
+        if (window.PasswordCredential && navigator.credentials) {
+          const googleCred = new PasswordCredential({
+            id: cred.username || 'unknown',
+            password: cred.password,
+            name: cred.username
+          });
+          await navigator.credentials.store(googleCred);
+        }
+      } catch (err) {
+        console.warn("Failed to save to Google Password Manager via prompt", err);
+      }
+
       await refreshCredentials();
       chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' }).catch(() => {});
       dismiss();
@@ -1351,6 +1410,7 @@
         opacity: 0;
         transform: translateY(-10px) scale(0.95);
         transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: auto;
       }
 
       .pw-save-prompt.pw-prompt-visible {
