@@ -549,6 +549,13 @@ const OmniStorage = (() => {
   };
 })();
 
+if (typeof globalThis !== 'undefined') {
+  globalThis.OmniStorage = OmniStorage;
+}
+if (typeof window !== 'undefined') {
+  window.OmniStorage = OmniStorage;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = OmniStorage;
 }

@@ -54,12 +54,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnExportVault = document.getElementById('btn-export-vault');
   const inputImportFile = document.getElementById('input-import-file');
 
+  // Helper to close any active delete confirm popovers
+  function closeAllDeleteConfirms() {
+    document.querySelectorAll('.delete-confirm-popover').forEach(p => {
+      if (p._timeoutId) clearTimeout(p._timeoutId);
+      p.remove();
+    });
+    document.querySelectorAll('.btn-delete-cred.active-delete').forEach(b => {
+      b.classList.remove('active-delete');
+    });
+    document.querySelectorAll('.cred-card.has-active-confirm').forEach(c => {
+      c.classList.remove('has-active-confirm');
+    });
+    document.querySelectorAll('.delete-action-wrap.active-wrap').forEach(w => {
+      w.classList.remove('active-wrap');
+    });
+  }
+
+  // Dismiss confirm popover on click outside or escape key
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.delete-action-wrap')) {
+      closeAllDeleteConfirms();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllDeleteConfirms();
+    }
+  });
+
   // Tab Navigation
   const navTabs = document.querySelectorAll('.nav-tab');
   const tabContents = document.querySelectorAll('.tab-content');
 
   navTabs.forEach(tab => {
     tab.addEventListener('click', () => {
+      closeAllDeleteConfirms();
       const targetId = tab.dataset.tab;
       navTabs.forEach(t => t.classList.remove('active'));
       tabContents.forEach(c => c.classList.remove('active'));
@@ -111,6 +142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load and render credentials for active tab
   async function renderCurrentSiteCredentials() {
+    closeAllDeleteConfirms();
     if (!currentUrlInfo) return;
     const creds = await OmniStorage.getCredentialsForUrl(currentUrlInfo.origin || currentUrlInfo.href);
     currentCredsContainer.innerHTML = '';
@@ -170,12 +202,14 @@ document.addEventListener('DOMContentLoaded', async () => {
               Fill
             </button>
           ` : ''}
-          <button class="btn-icon btn-delete-cred" title="Delete login" style="color: #ef4444;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
+          <div class="delete-action-wrap">
+            <button class="btn-icon btn-delete-cred" title="Delete login" style="color: #ef4444;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="cred-card-footer">
@@ -221,10 +255,44 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Event: Delete
+    // Event: Delete with confirmation popover near the delete button
     const btnDelete = card.querySelector('.btn-delete-cred');
-    btnDelete.addEventListener('click', async () => {
-      if (confirm(`Delete saved login for ${cred.username || cred.hostname}?`)) {
+    const deleteWrap = card.querySelector('.delete-action-wrap');
+
+    btnDelete.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existingPopover = deleteWrap.querySelector('.delete-confirm-popover');
+      if (existingPopover) {
+        closeAllDeleteConfirms();
+        return;
+      }
+
+      closeAllDeleteConfirms();
+      btnDelete.classList.add('active-delete');
+      card.classList.add('has-active-confirm');
+      deleteWrap.classList.add('active-wrap');
+
+      const popover = document.createElement('div');
+      popover.className = 'delete-confirm-popover';
+      popover.innerHTML = `
+        <span class="delete-confirm-text">Delete login?</span>
+        <div class="delete-confirm-btns">
+          <button type="button" class="btn-confirm-delete">Delete</button>
+          <button type="button" class="btn-cancel-delete">Cancel</button>
+        </div>
+      `;
+
+      popover.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+      });
+
+      const btnConfirm = popover.querySelector('.btn-confirm-delete');
+      const btnCancel = popover.querySelector('.btn-cancel-delete');
+
+      btnConfirm.addEventListener('click', async (evt) => {
+        evt.stopPropagation();
+        evt.preventDefault();
+        closeAllDeleteConfirms();
         await OmniStorage.deleteCredential(cred.id);
         
         if (currentTab && currentUrlInfo?.origin === cred.origin) {
@@ -246,7 +314,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderCurrentSiteCredentials();
         renderVaultList();
         updateTabBadge();
-      }
+      });
+
+      btnCancel.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+        evt.preventDefault();
+        closeAllDeleteConfirms();
+      });
+
+      deleteWrap.appendChild(popover);
+
+      const timeoutId = setTimeout(() => {
+        if (deleteWrap.contains(popover)) {
+          closeAllDeleteConfirms();
+        }
+      }, 7000);
+      popover._timeoutId = timeoutId;
     });
 
     return card;
@@ -254,6 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Render full vault tab
   async function renderVaultList() {
+    closeAllDeleteConfirms();
     const all = await OmniStorage.getAllCredentials();
     const query = (vaultSearchInput.value || '').toLowerCase().trim();
 
