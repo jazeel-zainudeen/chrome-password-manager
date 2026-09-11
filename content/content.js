@@ -486,6 +486,11 @@
    */
   function onKeyDown(e) {
     if (e.key === 'Escape' && activeDropdown) {
+      if (activeDropdown.querySelector('.pw-delete-confirm-popover')) {
+        e.stopPropagation();
+        closeActiveContentDeleteConfirm();
+        return;
+      }
       hidePickerDropdown();
       if (currentTargetInput) {
         currentTargetInput.dataset.ignoreFocusOnce = 'true';
@@ -654,12 +659,14 @@
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
-          <button type="button" class="pw-btn-delete" data-action="delete" data-id="${escapeHtml(cred.id)}" title="Delete login">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
+          <div class="pw-delete-wrap">
+            <button type="button" class="pw-btn-delete" data-action="delete" data-id="${escapeHtml(cred.id)}" title="Delete login">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
           <button type="button" class="pw-btn-fill" data-action="fill" data-id="${escapeHtml(cred.id)}">
             Fill
           </button>
@@ -712,9 +719,27 @@
   }
 
   /**
+   * Closes any active delete confirmation popover in the dropdown.
+   */
+  function closeActiveContentDeleteConfirm() {
+    if (!activeDropdown) return;
+    activeDropdown.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
+      if (p._timeoutId) clearTimeout(p._timeoutId);
+      p.remove();
+    });
+    activeDropdown.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
+      b.classList.remove('active-delete');
+    });
+    activeDropdown.querySelectorAll('.pw-cred-item.has-active-confirm').forEach(i => {
+      i.classList.remove('has-active-confirm');
+    });
+  }
+
+  /**
    * Hides the active dropdown picker.
    */
   function hidePickerDropdown() {
+    closeActiveContentDeleteConfirm();
     if (activeDropdown) {
       const dropdownToHide = activeDropdown;
       dropdownToHide.classList.remove('pw-visible');
@@ -747,6 +772,16 @@
     }
 
     dropdown.addEventListener('click', async (e) => {
+      // If an active delete confirm popover is open, clicking elsewhere inside dropdown dismisses it
+      if (activeDropdown && activeDropdown.querySelector('.pw-delete-confirm-popover')) {
+        const isDeleteBtn = e.target.closest('.pw-btn-delete');
+        if (!isDeleteBtn) {
+          e.stopPropagation();
+          closeActiveContentDeleteConfirm();
+          return;
+        }
+      }
+
       // Toggle password reveal
       const passEl = e.target.closest('.pw-cred-pass');
       if (passEl) {
@@ -782,8 +817,44 @@
         }
       } else if (action === 'delete') {
         e.stopPropagation();
-        if (cred && confirm(`Delete saved login for ${cred.username || cred.hostname}?`)) {
-          await OmniStorage.deleteCredential(cred.id);
+        const deleteBtn = target.classList.contains('pw-btn-delete') ? target : target.closest('.pw-btn-delete');
+        if (!deleteBtn) return;
+        const deleteWrap = deleteBtn.closest('.pw-delete-wrap');
+        const credItem = deleteBtn.closest('.pw-cred-item');
+        if (!deleteWrap) return;
+
+        const existing = deleteWrap.querySelector('.pw-delete-confirm-popover');
+        if (existing) {
+          closeActiveContentDeleteConfirm();
+          return;
+        }
+
+        closeActiveContentDeleteConfirm();
+        deleteBtn.classList.add('active-delete');
+        if (credItem) credItem.classList.add('has-active-confirm');
+
+        const pop = document.createElement('div');
+        pop.className = 'pw-delete-confirm-popover';
+        pop.innerHTML = `
+          <span class="pw-delete-confirm-text">Delete login?</span>
+          <div class="pw-delete-confirm-btns">
+            <button type="button" class="pw-btn-confirm-del" data-id="${escapeHtml(credId)}">Delete</button>
+            <button type="button" class="pw-btn-cancel-del">Cancel</button>
+          </div>
+        `;
+
+        pop.addEventListener('click', (evt) => {
+          evt.stopPropagation();
+        });
+
+        const confirmBtn = pop.querySelector('.pw-btn-confirm-del');
+        const cancelBtn = pop.querySelector('.pw-btn-cancel-del');
+
+        confirmBtn.addEventListener('click', async (evt) => {
+          evt.stopPropagation();
+          evt.preventDefault();
+          closeActiveContentDeleteConfirm();
+          await OmniStorage.deleteCredential(credId);
           try {
             if (window.PasswordCredential && navigator.credentials) {
               await navigator.credentials.preventSilentAccess();
@@ -793,11 +864,26 @@
           }
           showToast('Login deleted');
           await refreshCredentials();
-          if (dropdownEl && dropdownEl.style.display === 'block') {
-            const searchInput = dropdownEl.querySelector('.pw-search-input');
-            renderDropdownAccounts(dropdownEl, searchInput ? searchInput.value : '');
+          if (activeDropdown && activeDropdown.classList.contains('pw-visible')) {
+            const searchInput = activeDropdown.querySelector('#pw-search-filter');
+            renderDropdownAccounts(activeDropdown, searchInput ? searchInput.value : '');
           }
-        }
+        });
+
+        cancelBtn.addEventListener('click', (evt) => {
+          evt.stopPropagation();
+          evt.preventDefault();
+          closeActiveContentDeleteConfirm();
+        });
+
+        deleteWrap.appendChild(pop);
+
+        const timeoutId = setTimeout(() => {
+          if (deleteWrap.contains(pop)) {
+            closeActiveContentDeleteConfirm();
+          }
+        }, 7000);
+        pop._timeoutId = timeoutId;
       } else if (action === 'generate') {
         const password = generateStrongPassword();
         if (currentTargetInput) {
@@ -1286,6 +1372,12 @@
         background: #374151;
       }
 
+      .pw-delete-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+
       .pw-btn-delete {
         background: transparent;
         border: none;
@@ -1301,6 +1393,108 @@
 
       .pw-btn-delete:hover {
         background: rgba(239, 68, 68, 0.1);
+      }
+
+      .pw-btn-delete.active-delete {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #ef4444 !important;
+      }
+
+      .pw-cred-item.has-active-confirm {
+        z-index: 30;
+        position: relative;
+      }
+
+      .pw-delete-confirm-popover {
+        position: absolute;
+        right: calc(100% + 6px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: #111827;
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 1000;
+        white-space: nowrap;
+        animation: pwPopIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: default;
+      }
+
+      @keyframes pwPopIn {
+        from {
+          opacity: 0;
+          transform: translateY(-50%) translateX(4px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(-50%) translateX(0) scale(1);
+        }
+      }
+
+      .pw-delete-confirm-popover::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -5px;
+        transform: translateY(-50%) rotate(45deg);
+        width: 8px;
+        height: 8px;
+        background: #111827;
+        border-top: 1px solid rgba(239, 68, 68, 0.45);
+        border-right: 1px solid rgba(239, 68, 68, 0.45);
+        pointer-events: none;
+      }
+
+      .pw-delete-confirm-text {
+        font-size: 11px;
+        font-weight: 600;
+        color: #f3f4f6;
+        user-select: none;
+      }
+
+      .pw-delete-confirm-btns {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .pw-btn-confirm-del {
+        background: #ef4444;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 7px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        line-height: 1.3;
+        transition: background 0.15s;
+      }
+
+      .pw-btn-confirm-del:hover {
+        background: #dc2626;
+      }
+
+      .pw-btn-cancel-del {
+        background: rgba(255, 255, 255, 0.1);
+        color: #9ca3af;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+        padding: 2px 7px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        line-height: 1.3;
+        transition: all 0.15s;
+      }
+
+      .pw-btn-cancel-del:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
       }
 
       .pw-btn-fill {
