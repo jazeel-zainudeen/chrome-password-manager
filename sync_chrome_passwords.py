@@ -80,6 +80,19 @@ def sync_passwords():
     vault = []
     seen = set()
 
+    # Load existing output JSON to preserve user modifications and custom passwords
+    existing_map = {}
+    if os.path.exists(OUTPUT_JSON_PATH):
+        try:
+            with open(OUTPUT_JSON_PATH, 'r') as f:
+                existing_items = json.load(f)
+                if isinstance(existing_items, list):
+                    for item in existing_items:
+                        key = f"{(item.get('origin') or item.get('hostname') or '').lower()}|{(item.get('username') or '').lower()}"
+                        existing_map[key] = item
+        except Exception as e:
+            print(f"Warning: could not read existing {OUTPUT_JSON_PATH}: {e}")
+
     for row in rows:
         url_str, username, enc_password, date_created = row[0], row[1], row[2], row[3]
         password = decrypt_chrome_password(enc_password, key, iv)
@@ -109,6 +122,12 @@ def sync_passwords():
         if parsed.path and len(parsed.path) > 1:
             title = f"{hostname}{parsed.path[:20]}"
 
+        # Preserve user modified credentials and updated passwords
+        existing_item = existing_map.get(dedup_key)
+        if existing_item and existing_item.get('userModified'):
+            vault.append(existing_item)
+            continue
+
         vault.append({
             "id": "chrome_" + hashlib.md5(f"{origin}_{username}".encode()).hexdigest()[:10],
             "title": title,
@@ -122,7 +141,7 @@ def sync_passwords():
             "notes": "Synced from Chrome Password Manager",
             "createdAt": date_created or 1710000000000,
             "updatedAt": 1710000000000,
-            "lastUsed": 0
+            "lastUsed": existing_item.get('lastUsed', 0) if existing_item else 0
         })
 
     with open(OUTPUT_JSON_PATH, 'w') as f:
