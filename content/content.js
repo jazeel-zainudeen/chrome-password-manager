@@ -446,9 +446,23 @@
    */
   function onInputBlur(e) {
     const related = e.relatedTarget;
+    
+    // If focus moves to our input, keep open
+    if (related === currentTargetInput) {
+      return;
+    }
+
+    // If focus moves within our dropdown, keep open
     if (related && (related === containerEl || (shadowRoot && shadowRoot.contains(related)))) {
       return;
     }
+
+    // If the element losing focus was just removed from the DOM (e.g. a deleted popover),
+    // it will have no parent. Don't close the dropdown in this case.
+    if (e.target && !e.target.parentNode) {
+      return;
+    }
+
     hidePickerDropdown();
   }
 

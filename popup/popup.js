@@ -56,6 +56,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Helper to close any active delete confirm popovers
   function closeAllDeleteConfirms() {
+    // Remove focus from buttons before removing them from DOM to prevent Chrome popup from closing
+    if (document.activeElement && document.activeElement.closest('.delete-confirm-popover')) {
+      document.activeElement.blur();
+    }
+
     document.querySelectorAll('.delete-confirm-popover').forEach(p => {
       if (p._timeoutId) clearTimeout(p._timeoutId);
       p.remove();
