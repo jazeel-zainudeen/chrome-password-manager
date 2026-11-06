@@ -1,15 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Password Manager — Modern, Lightweight & HTTP-Ready</title>
   <title>Chrome Password Manager — Secure Autofill for HTTP & Localhost</title>
   <link rel="icon" type="image/png" href="assets/icons/icon48.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
     :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-indigo: #6366f1;
+      --accent-cyan: #06b6d4;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --text: #f8fafc;
       --bg: #090c15;
       --card-bg: #0f1422;
       --card-border: #1e2640;
@@ -17,6 +32,7 @@
       --text: #f1f5f9;
       --text-muted: #94a3b8;
       --text-sub: #64748b;
+      --glow: rgba(99, 102, 241, 0.25);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
       --amber: #f59e0b;
@@ -33,884 +49,1697 @@
     }
 
     body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
+      line-height: 1.6;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+      background-attachment: fixed;
     }
 
+    /* Container */
     .container {
+      max-width: 1140px;
       max-width: 1080px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
+    /* Header */
     /* Minimal Navbar */
     header {
+      padding: 24px 0;
       padding: 18px 0;
       border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 100;
+      background: rgba(11, 15, 25, 0.8);
       background: rgba(9, 12, 21, 0.85);
       backdrop-filter: blur(8px);
     }
-    .nav-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 1.05rem;
-      text-decoration: none;
-      color: var(--text);
-    }
-    .brand img {
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .nav-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: color 0.15s;
-    }
-    .nav-links a:hover {
-      color: var(--text);
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary);
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.88rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: background 0.15s;
-    }
-    .btn:hover {
-      background: var(--primary-hover);
-    }
-    .btn-secondary {
-      background: #172033;
-      color: var(--text);
-      border: 1px solid var(--card-border);
-    }
-    .btn-secondary:hover {
-      background: #1f2b45;
-    }
 
-    /* Hero */
-    .hero {
-      padding: 70px 0 50px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 12px;
-      border-radius: 100px;
-      background: var(--amber-bg);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      color: #fbbf24;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      font-size: 2.75rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
-      margin-bottom: 16px;
-    }
-    .hero h1 span {
-      color: #818cf8;
-    }
-    .hero p {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      max-width: 620px;
-      margin: 0 auto 30px;
-      line-height: 1.6;
-    }
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 45px;
-    }
-
-    /* Authentic Workspace Split Mockup */
-    .showcase-stage {
-      background: #0a0e1a;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 24px;
-      margin: 0 auto 60px;
-      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
-    }
-    .stage-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-      font-size: 0.85rem;
-      color: var(--text-sub);
-    }
-    .stage-dots {
-      display: flex;
-      gap: 6px;
-    }
-    .stage-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #252e48;
-    }
-    .stage-address {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #111726;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 4px 12px;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: #cbd5e1;
-    }
-    .badge-insecure {
-      background: var(--amber-bg);
-      color: var(--amber);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.68rem;
-    }
-
-    .stage-body {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 24px;
-      align-items: start;
-    }
-
-    /* Left pane: In-Page Experience */
-    .pane-card {
-      background: #0f1524;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 24px;
-      text-align: left;
-      position: relative;
-    }
-    .pane-label {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-sub);
-      font-weight: 700;
-      margin-bottom: 14px;
-    }
-    .pane-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .pane-desc {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
-
-    .mock-form-group {
-      margin-bottom: 14px;
-      position: relative;
-    }
-    .mock-form-label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-    .mock-field-wrap {
-      position: relative;
-    }
-    .mock-input {
-      width: 100%;
-      background: #172033;
-      border: 1px solid #2e3a5f;
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: #fff;
-      font-size: 0.88rem;
-      font-family: inherit;
-    }
-    .mock-input.focus-ring {
-      border-color: #6366f1;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-    }
-    .mock-key-badge {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      background: #6366f1;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-    }
-
-    /* Floating In-Page Dropdown */
-    .mock-floating-menu {
-      margin-top: 8px;
-      background: #0f1629;
-      border: 1px solid #3b4874;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    }
-    .menu-header {
-      padding: 8px 12px;
-      background: #162039;
-      border-bottom: 1px solid #283556;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.75rem;
-    }
-    .menu-header-site {
-      font-weight: 600;
-      color: #cbd5e1;
-    }
-    .menu-header-badge {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 0.65rem;
-    }
-    .menu-search {
-      padding: 6px 10px;
-      border-bottom: 1px solid #1e2946;
-    }
-    .menu-search input {
-      width: 100%;
-      background: #0b101e;
-      border: 1px solid #222e4c;
-      border-radius: 4px;
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      color: #94a3b8;
-    }
-    .menu-row {
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(99, 102, 241, 0.08);
-      border-bottom: 1px solid #1a243d;
-    }
-    .row-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .row-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      background: #4f46e5;
-      color: white;
-      font-size: 0.75rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .row-user {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #fff;
-    }
-    .row-pass {
-      font-size: 0.7rem;
-      color: #94a3b8;
-    }
-    .btn-fill {
-      background: #10b981;
-      color: #fff;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    /* Right pane: Actual Extension Popup Replica */
-    .mock-popup-container {
-      background: #0c0f17;
-      border: 1px solid #232d48;
-      border-radius: 8px;
-      overflow: hidden;
-      text-align: left;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    .popup-top {
-      background: #121826;
-      border-bottom: 1px solid #1d273f;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .popup-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-    .popup-site-chip {
-      background: var(--amber-bg);
-      color: var(--amber);
-      padding: 2px 8px;
-      border-radius: 100px;
-      font-size: 0.68rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .dot-amber {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--amber);
-    }
-
-    .popup-tabs {
-      display: flex;
-      background: #0f1422;
-      border-bottom: 1px solid #1d273f;
-    }
-    .popup-tab {
-      flex: 1;
-      text-align: center;
-      padding: 8px 4px;
-      font-size: 0.76rem;
-      color: var(--text-sub);
-      font-weight: 600;
-      border-bottom: 2px solid transparent;
-    }
-    .popup-tab.active {
-      color: #818cf8;
-      border-color: #6366f1;
-      background: rgba(99, 102, 241, 0.05);
-    }
-
-    .popup-body {
-      padding: 14px;
-    }
-    .popup-card {
-      background: #151c2c;
-      border: 1px solid #222d45;
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-bottom: 10px;
-    }
-    .popup-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .popup-card-title {
-      font-size: 0.86rem;
-      font-weight: 600;
-      color: #fff;
-    }
-    .popup-card-sub {
-      font-size: 0.72rem;
-      color: var(--text-sub);
-      font-family: var(--mono);
-    }
-    .popup-card-item {
-      background: #1a2336;
-      border-radius: 4px;
-      padding: 6px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
-    }
-    .popup-item-user {
-      color: #e2e8f0;
-      font-weight: 500;
-    }
-    .popup-item-tag {
-      color: #10b981;
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-
-    /* Features 3-Column */
-    .features-section {
-      padding: 40px 0 60px;
-      border-top: 1px solid var(--card-border);
-    }
-    .section-head {
-      margin-bottom: 36px;
-      text-align: left;
-    }
-    .section-head h2 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-    .section-head p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-    .feature-item {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 24px;
-      text-align: left;
-    }
-    .feature-item h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #fff;
-    }
-    .feature-item p {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    /* Comparison Table Clean */
-    .comparison-section {
-      padding: 40px 0 60px;
-      border-top: 1px solid var(--card-border);
-    }
-    .table-clean {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .table-clean th, .table-clean td {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .table-clean th {
-      background: #121828;
-      color: var(--text-sub);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 700;
-    }
-    .table-clean tr:last-child td {
-      border-bottom: none;
-    }
-    .status-ok {
-      color: var(--emerald);
-      font-weight: 600;
-    }
-    .status-fail {
-      color: #ef4444;
-      font-weight: 500;
-    }
-
-    /* Quick Install */
-    .install-section {
-      padding: 40px 0 70px;
-      border-top: 1px solid var(--card-border);
-    }
-    .steps-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-top: 24px;
-      text-align: left;
-    }
-    .step-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 20px;
-    }
-    .step-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #818cf8;
-      margin-bottom: 10px;
-      display: inline-block;
-      font-family: var(--mono);
-    }
-    .step-card h4 {
-      font-size: 0.98rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    .step-card p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .step-card code {
-      font-family: var(--mono);
-      background: #172033;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      color: #cbd5e1;
-    }
-
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--card-border);
-      padding: 30px 0;
-      color: var(--text-sub);
-      font-size: 0.85rem;
-      text-align: center;
-    }
-    footer a {
-      color: var(--text-muted);
-      text-decoration: none;
-    }
-    footer a:hover {
-      color: #fff;
-    }
-
-    @media (max-width: 860px) {
-      .stage-body {
-        grid-template-columns: 1fr;
+    .nav-wrap {
+      .nav-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      .features-grid, .steps-row {
-        grid-template-columns: 1fr;
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 1.15rem;
       }
-      .hero h1 {
-        font-size: 2.2rem;
+
+      .brand img {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
       }
-    }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+        transition: color 0.15s;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        background: var(--primary);
+        color: #fff;
+        padding: 9px 18px;
+        border-radius: 8px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 0.88rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background 0.15s;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        background: var(--primary-hover);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        background: #172033;
+        color: var(--text);
+        box-shadow: none;
+        border: 1px solid var(--card-border);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        background: #1f2b45;
+      }
+
+      /* Hero Section */
+      /* Hero */
+      .hero {
+        padding: 90px 0 60px;
+        padding: 70px 0 50px;
+        text-align: center;
+        position: relative;
+      }
+
+      .badge-pill {
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 14px;
+          border-radius: 999px;
+          background: rgba(99, 102, 241, 0.12);
+          border: 1px solid rgba(99, 102, 241, 0.3);
+          color: #a5b4fc;
+          font-size: 0.85rem;
+          padding: 4px 12px;
+          border-radius: 100px;
+          background: var(--amber-bg);
+          border: 1px solid rgba(245, 158, 11, 0.25);
+          color: #fbbf24;
+          font-size: 0.8rem;
+          font-weight: 600;
+          margin-bottom: 24px;
+        }
+
+        .hero h1 {
+          font-size: 3.25rem;
+          font-weight: 800;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          margin-bottom: 20px;
+          background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-size: 2.75rem;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          line-height: 1.2;
+          margin-bottom: 16px;
+        }
+
+        .hero h1 span.gradient {
+          background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+
+          .hero h1 span {
+            color: #818cf8;
+          }
+
+          .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto 36px;
+            font-size: 1.1rem;
+            max-width: 620px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+          }
+
+          .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+            gap: 12px;
+            margin-bottom: 45px;
+          }
+
+          /* Mockup Showcase */
+          .mockup-container {
+            max-width: 960px;
+            margin: 0 auto 50px;
+            perspective: 1000px;
+
+            /* Authentic Workspace Split Mockup */
+            .showcase-stage {
+              background: #0a0e1a;
+              border: 1px solid var(--card-border);
+              border-radius: 12px;
+              padding: 24px;
+              margin: 0 auto 60px;
+              box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+            }
+
+            .browser-frame {
+              background: #0f172a;
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              border-radius: 14px;
+              overflow: hidden;
+              box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.2);
+            }
+
+            .browser-bar {
+              background: #1e293b;
+              padding: 12px 18px;
+
+              .stage-header {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                justify-content: space-between;
+                border-bottom: 1px solid var(--card-border);
+                padding-bottom: 16px;
+                margin-bottom: 24px;
+                font-size: 0.85rem;
+                color: var(--text-sub);
+              }
+
+              .browser-dots {
+                .stage-dots {
+                  display: flex;
+                  gap: 7px;
+                  gap: 6px;
+                }
+
+                .dot {
+                  width: 11px;
+                  height: 11px;
+
+                  .stage-dot {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background: #252e48;
+                  }
+
+                  .dot.red {
+                    background: #ef4444;
+                  }
+
+                  .dot.yellow {
+                    background: #f59e0b;
+                  }
+
+                  .dot.green {
+                    background: #10b981;
+                  }
+
+                  .browser-url-bar {
+                    flex: 1;
+                    background: #0b1329;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 8px;
+                    padding: 6px 14px;
+
+                    .stage-address {
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      font-family: 'JetBrains Mono', monospace;
+                      font-size: 0.82rem;
+                      color: #94a3b8;
+                      background: #111726;
+                      border: 1px solid var(--card-border);
+                      border-radius: 6px;
+                      padding: 4px 12px;
+                      font-family: var(--mono);
+                      font-size: 0.78rem;
+                      color: #cbd5e1;
+                    }
+
+                    .browser-url-bar .insecure-tag {
+                      background: rgba(245, 158, 11, 0.2);
+                      color: #fbbf24;
+                      font-size: 0.68rem;
+                      padding: 2px 6px;
+
+                      .badge-insecure {
+                        background: var(--amber-bg);
+                        color: var(--amber);
+                        padding: 1px 6px;
+                        border-radius: 4px;
+                        font-weight: 600;
+                        letter-spacing: 0.04em;
+                        font-size: 0.68rem;
+                      }
+
+                      .browser-url-bar .url-text {
+                        color: #cbd5e1;
+                      }
+
+                      .browser-ext-icon {
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 4px;
+                        background: rgba(99, 102, 241, 0.2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      }
+
+                      .browser-ext-icon img {
+                        width: 16px;
+                        height: 16px;
+                      }
+
+                      .browser-content {
+                        background: #090e1a;
+                        padding: 40px;
+                        min-height: 440px;
+                        position: relative;
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        gap: 30px;
+                        background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                        background-size: 20px 20px;
+
+                        .stage-body {
+                          display: grid;
+                          grid-template-columns: 1.15fr 0.85fr;
+                          gap: 24px;
+                          align-items: start;
+                        }
+
+                        /* Simulated In-Page Form */
+                        .mock-page-form {
+                          background: #111827;
+                          border: 1px solid rgba(255, 255, 255, 0.08);
+                          border-radius: 12px;
+                          padding: 24px 28px;
+                          width: 380px;
+
+                          /* Left pane: In-Page Experience */
+                          .pane-card {
+                            background: #0f1524;
+                            border: 1px solid var(--card-border);
+                            border-radius: 8px;
+                            padding: 24px;
+                            text-align: left;
+                            position: relative;
+                          }
+
+                          .mock-page-form h4 {
+                            font-size: 1.15rem;
+                            margin-bottom: 6px;
+                            color: #f3f4f6;
+
+                            .pane-label {
+                              font-size: 0.72rem;
+                              text-transform: uppercase;
+                              letter-spacing: 0.08em;
+                              color: var(--text-sub);
+                              font-weight: 700;
+                              margin-bottom: 14px;
+                            }
+
+                            .mock-page-form p {
+                              .pane-title {
+                                font-size: 1.1rem;
+                                font-weight: 600;
+                                margin-bottom: 4px;
+                              }
+
+                              .pane-desc {
+                                font-size: 0.82rem;
+                                color: #9ca3af;
+                                color: var(--text-muted);
+                                margin-bottom: 20px;
+                              }
+
+                              .mock-field {
+                                margin-bottom: 16px;
+
+                                .mock-form-group {
+                                  margin-bottom: 14px;
+                                  position: relative;
+                                }
+
+                                .mock-field label {
+                                  .mock-form-label {
+                                    display: block;
+                                    font-size: 0.78rem;
+                                    color: #9ca3af;
+                                    margin-bottom: 6px;
+                                    font-size: 0.75rem;
+                                    font-weight: 600;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--text-muted);
+                                    margin-bottom: 4px;
+                                  }
+
+                                  .mock-input-wrap {
+                                    .mock-field-wrap {
+                                      position: relative;
+                                    }
+
+                                    .mock-input {
+                                      width: 100%;
+                                      background: #1f2937;
+                                      border: 1px solid rgba(255, 255, 255, 0.12);
+                                      border-radius: 8px;
+                                      padding: 9px 12px;
+                                      color: #f9fafb;
+                                      font-size: 0.9rem;
+                                      outline: none;
+                                      box-sizing: border-box;
+                                      background: #172033;
+                                      border: 1px solid #2e3a5f;
+                                      border-radius: 6px;
+                                      padding: 8px 12px;
+                                      color: #fff;
+                                      font-size: 0.88rem;
+                                      font-family: inherit;
+                                    }
+
+                                    .mock-input.active-field {
+                                      .mock-input.focus-ring {
+                                        border-color: #6366f1;
+                                        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+                                        outline: none;
+                                        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+                                      }
+
+                                      .mock-inline-key {
+                                        .mock-key-badge {
+                                          position: absolute;
+                                          right: 10px;
+                                          right: 8px;
+                                          top: 50%;
+                                          transform: translateY(-50%);
+                                          width: 22px;
+                                          height: 22px;
+                                          background: linear-gradient(135deg, #6366f1, #4f46e5);
+                                          border-radius: 5px;
+                                          width: 20px;
+                                          height: 20px;
+                                          border-radius: 4px;
+                                          background: #6366f1;
+                                          color: #fff;
+                                          display: flex;
+                                          align-items: center;
+                                          justify-content: center;
+                                          color: white;
+                                          font-size: 11px;
+                                          box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+                                        }
+
+                                        /* Floating In-Page Picker Mockup */
+                                        .mock-floating-picker {
+                                          position: absolute;
+                                          top: 195px;
+                                          left: 28px;
+                                          width: 324px;
+                                          background: rgba(15, 23, 42, 0.96);
+                                          backdrop-filter: blur(16px);
+                                          border: 1px solid rgba(99, 102, 241, 0.4);
+                                          border-radius: 12px;
+                                          box-shadow: 0 14px 40px -6px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.25);
+                                          z-index: 20;
+
+                                          /* Floating In-Page Dropdown */
+                                          .mock-floating-menu {
+                                            margin-top: 8px;
+                                            background: #0f1629;
+                                            border: 1px solid #3b4874;
+                                            border-radius: 8px;
+                                            overflow: hidden;
+                                            animation: floatPulse 4s ease-in-out infinite;
+                                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+                                          }
+
+                                          @keyframes floatPulse {
+
+                                            0%,
+                                            100% {
+                                              transform: translateY(0);
+                                            }
+
+                                            50% {
+                                              transform: translateY(-3px);
+                                            }
+                                          }
+
+                                          .picker-top {
+                                            padding: 10px 14px;
+                                            background: rgba(255, 255, 255, 0.03);
+                                            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+                                            .menu-header {
+                                              padding: 8px 12px;
+                                              background: #162039;
+                                              border-bottom: 1px solid #283556;
+                                              display: flex;
+                                              align-items: center;
+                                              justify-content: space-between;
+                                              font-size: 0.75rem;
+                                            }
+
+                                            .picker-site-tag {
+                                              font-size: 0.72rem;
+                                              font-weight: 700;
+                                              color: #818cf8;
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 5px;
+
+                                              .menu-header-site {
+                                                font-weight: 600;
+                                                color: #cbd5e1;
+                                              }
+
+                                              .picker-badge {
+                                                background: rgba(245, 158, 11, 0.2);
+                                                color: #f59e0b;
+                                                font-size: 0.65rem;
+                                                padding: 2px 6px;
+
+                                                .menu-header-badge {
+                                                  background: rgba(16, 185, 129, 0.15);
+                                                  color: #10b981;
+                                                  padding: 1px 6px;
+                                                  border-radius: 4px;
+                                                  font-weight: 700;
+                                                  font-size: 0.65rem;
+                                                }
+
+                                                .picker-search {
+                                                  padding: 8px 12px;
+                                                  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+                                                  .menu-search {
+                                                    padding: 6px 10px;
+                                                    border-bottom: 1px solid #1e2946;
+                                                  }
+
+                                                  .picker-search-input {
+                                                    .menu-search input {
+                                                      width: 100%;
+                                                      background: rgba(0, 0, 0, 0.3);
+                                                      border: 1px solid rgba(255, 255, 255, 0.08);
+                                                      border-radius: 6px;
+                                                      padding: 5px 10px;
+                                                      font-size: 0.78rem;
+                                                      color: #e2e8f0;
+                                                      outline: none;
+                                                      box-sizing: border-box;
+                                                      background: #0b101e;
+                                                      border: 1px solid #222e4c;
+                                                      border-radius: 4px;
+                                                      padding: 4px 8px;
+                                                      font-size: 0.75rem;
+                                                      color: #94a3b8;
+                                                    }
+
+                                                    .picker-item {
+                                                      padding: 10px 14px;
+
+                                                      .menu-row {
+                                                        padding: 10px 12px;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: space-between;
+                                                        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                                                        background: rgba(99, 102, 241, 0.08);
+                                                        cursor: pointer;
+                                                        border-bottom: 1px solid #1a243d;
+                                                      }
+
+                                                      .picker-item-left {
+                                                        .row-meta {
+                                                          display: flex;
+                                                          align-items: center;
+                                                          gap: 10px;
+                                                        }
+
+                                                        .picker-avatar {
+                                                          width: 28px;
+                                                          height: 28px;
+                                                          border-radius: 6px;
+
+                                                          .row-avatar {
+                                                            width: 24px;
+                                                            height: 24px;
+                                                            border-radius: 4px;
+                                                            background: #4f46e5;
+                                                            color: white;
+                                                            font-size: 0.75rem;
+                                                            font-weight: 700;
+                                                            font-size: 0.8rem;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                          }
+
+                                                          .picker-user {
+                                                            font-size: 0.85rem;
+
+                                                            .row-user {
+                                                              font-size: 0.82rem;
+                                                              font-weight: 600;
+                                                              color: #f8fafc;
+                                                              color: #fff;
+                                                            }
+
+                                                            .picker-pass {
+                                                              font-size: 0.72rem;
+
+                                                              .row-pass {
+                                                                font-size: 0.7rem;
+                                                                color: #94a3b8;
+                                                                letter-spacing: 1px;
+                                                              }
+
+                                                              .picker-fill-btn {
+                                                                .btn-fill {
+                                                                  background: #10b981;
+                                                                  color: white;
+                                                                  color: #fff;
+                                                                  border: none;
+                                                                  padding: 5px 10px;
+                                                                  border-radius: 6px;
+                                                                  padding: 4px 10px;
+                                                                  border-radius: 4px;
+                                                                  font-size: 0.75rem;
+                                                                  font-weight: 600;
+                                                                  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                                                                  cursor: pointer;
+                                                                }
+
+                                                                /* Floating Popup Mockup (Right Side) */
+                                                                .mock-popup-preview {
+                                                                  width: 320px;
+                                                                  background: #0f172a;
+                                                                  border: 1px solid rgba(255, 255, 255, 0.12);
+                                                                  border-radius: 12px;
+
+                                                                  /* Right pane: Actual Extension Popup Replica */
+                                                                  .mock-popup-container {
+                                                                    background: #0c0f17;
+                                                                    border: 1px solid #232d48;
+                                                                    border-radius: 8px;
+                                                                    overflow: hidden;
+                                                                    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.15);
+                                                                    text-align: left;
+                                                                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                                                                  }
+
+                                                                  .mock-popup-header {
+                                                                    background: #1e293b;
+                                                                    padding: 12px 16px;
+
+                                                                    .popup-top {
+                                                                      background: #121826;
+                                                                      border-bottom: 1px solid #1d273f;
+                                                                      padding: 10px 14px;
+                                                                      display: flex;
+                                                                      align-items: center;
+                                                                      justify-content: space-between;
+                                                                      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                                                                    }
+
+                                                                    .mock-popup-title {
+                                                                      .popup-brand {
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        gap: 8px;
+                                                                        font-size: 0.85rem;
+                                                                        font-weight: 700;
+                                                                        color: #f1f5f9;
+                                                                      }
+
+                                                                      .mock-popup-tabs {
+                                                                        .popup-site-chip {
+                                                                          background: var(--amber-bg);
+                                                                          color: var(--amber);
+                                                                          padding: 2px 8px;
+                                                                          border-radius: 100px;
+                                                                          font-size: 0.68rem;
+                                                                          font-weight: 600;
+                                                                          display: flex;
+                                                                          background: rgba(0, 0, 0, 0.2);
+                                                                          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                                                                          align-items: center;
+                                                                          gap: 4px;
+                                                                        }
+
+                                                                        .mock-popup-tab {
+                                                                          .dot-amber {
+                                                                            width: 6px;
+                                                                            height: 6px;
+                                                                            border-radius: 50%;
+                                                                            background: var(--amber);
+                                                                          }
+
+                                                                          .popup-tabs {
+                                                                            display: flex;
+                                                                            background: #0f1422;
+                                                                            border-bottom: 1px solid #1d273f;
+                                                                          }
+
+                                                                          .popup-tab {
+                                                                            flex: 1;
+                                                                            text-align: center;
+                                                                            padding: 8px;
+                                                                            font-size: 0.78rem;
+                                                                            padding: 8px 4px;
+                                                                            font-size: 0.76rem;
+                                                                            color: var(--text-sub);
+                                                                            font-weight: 600;
+                                                                            color: #94a3b8;
+                                                                            border-bottom: 2px solid transparent;
+                                                                          }
+
+                                                                          .mock-popup-tab.active {
+                                                                            .popup-tab.active {
+                                                                              color: #818cf8;
+                                                                              border-bottom: 2px solid #818cf8;
+                                                                              border-color: #6366f1;
+                                                                              background: rgba(99, 102, 241, 0.05);
+                                                                            }
+
+                                                                            .mock-popup-body {
+
+                                                                              .popup-body {
+                                                                                padding: 14px;
+                                                                              }
+
+                                                                              .mock-vault-card {
+                                                                                background: #1a2234;
+                                                                                border: 1px solid rgba(255, 255, 255, 0.06);
+                                                                                border-radius: 8px;
+
+                                                                                .popup-card {
+                                                                                  background: #151c2c;
+                                                                                  border: 1px solid #222d45;
+                                                                                  border-radius: 6px;
+                                                                                  padding: 10px 12px;
+                                                                                  margin-bottom: 10px;
+                                                                                }
+
+                                                                                .mock-card-head {
+                                                                                  .popup-card-header {
+                                                                                    display: flex;
+                                                                                    justify-content: space-between;
+                                                                                    font-size: 0.7rem;
+                                                                                    color: #64748b;
+                                                                                    margin-bottom: 4px;
+                                                                                    align-items: center;
+                                                                                    margin-bottom: 6px;
+                                                                                  }
+
+                                                                                  .mock-card-domain {
+                                                                                    font-size: 0.9rem;
+                                                                                    font-weight: 700;
+                                                                                    color: #f8fafc;
+                                                                                    margin-bottom: 8px;
+
+                                                                                    .popup-card-title {
+                                                                                      font-size: 0.86rem;
+                                                                                      font-weight: 600;
+                                                                                      color: #fff;
+                                                                                    }
+
+                                                                                    .mock-card-actions {
+                                                                                      .popup-card-sub {
+                                                                                        font-size: 0.72rem;
+                                                                                        color: var(--text-sub);
+                                                                                        font-family: var(--mono);
+                                                                                      }
+
+                                                                                      .popup-card-item {
+                                                                                        background: #1a2336;
+                                                                                        border-radius: 4px;
+                                                                                        padding: 6px 10px;
+                                                                                        display: flex;
+                                                                                        justify-content: space-between;
+                                                                                        align-items: center;
+                                                                                        background: rgba(0, 0, 0, 0.2);
+                                                                                        padding: 6px 10px;
+                                                                                        border-radius: 6px;
+                                                                                        font-size: 0.8rem;
+                                                                                        color: #cbd5e1;
+                                                                                        font-size: 0.78rem;
+                                                                                      }
+
+                                                                                      .popup-item-user {
+                                                                                        color: #e2e8f0;
+                                                                                        font-weight: 500;
+                                                                                      }
+
+                                                                                      .popup-item-tag {
+                                                                                        color: #10b981;
+                                                                                        font-size: 0.72rem;
+                                                                                        font-weight: 600;
+                                                                                      }
+
+                                                                                      @media (max-width: 820px) {
+                                                                                        .browser-content {
+                                                                                          flex-direction: column;
+                                                                                          align-items: center;
+                                                                                          padding: 24px 16px;
+                                                                                        }
+
+                                                                                        .mock-page-form,
+                                                                                        .mock-popup-preview {
+                                                                                          width: 100%;
+                                                                                          max-width: 380px;
+                                                                                        }
+
+                                                                                        .mock-floating-picker {
+                                                                                          position: static;
+                                                                                          width: 100%;
+                                                                                          margin-top: 16px;
+                                                                                        }
+
+                                                                                        /* Features 3-Column */
+                                                                                        .features-section {
+                                                                                          padding: 40px 0 60px;
+                                                                                          border-top: 1px solid var(--card-border);
+                                                                                        }
+
+                                                                                        .section-head {
+                                                                                          margin-bottom: 36px;
+                                                                                          text-align: left;
+                                                                                        }
+
+                                                                                        .section-head h2 {
+                                                                                          font-size: 1.75rem;
+                                                                                          font-weight: 700;
+                                                                                          letter-spacing: -0.02em;
+                                                                                          margin-bottom: 6px;
+                                                                                        }
+
+                                                                                        .section-head p {
+                                                                                          color: var(--text-muted);
+                                                                                          font-size: 0.95rem;
+                                                                                        }
+
+                                                                                        /* Feature Grid */
+                                                                                        .grid {
+                                                                                          .features-grid {
+                                                                                            display: grid;
+                                                                                            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                                                                                            gap: 24px;
+                                                                                            margin: 60px 0;
+                                                                                            grid-template-columns: repeat(3, 1fr);
+                                                                                            gap: 20px;
+                                                                                          }
+
+                                                                                          .card {
+                                                                                            .feature-item {
+                                                                                              background: var(--card-bg);
+                                                                                              border: 1px solid var(--card-border);
+                                                                                              border-radius: 16px;
+                                                                                              padding: 28px;
+                                                                                              backdrop-filter: blur(12px);
+                                                                                              transition: transform 0.2s, border-color 0.2s;
+                                                                                              border-radius: 8px;
+                                                                                              padding: 24px;
+                                                                                              text-align: left;
+                                                                                            }
+
+                                                                                            .card:hover {
+                                                                                              transform: translateY(-3px);
+                                                                                              border-color: rgba(99, 102, 241, 0.35);
+
+                                                                                              .feature-item h3 {
+                                                                                                font-size: 1rem;
+                                                                                                font-weight: 600;
+                                                                                                margin-bottom: 8px;
+                                                                                                color: #fff;
+                                                                                              }
+
+                                                                                              .card-icon {
+                                                                                                width: 44px;
+                                                                                                height: 44px;
+                                                                                                border-radius: 10px;
+                                                                                                display: flex;
+                                                                                                align-items: center;
+                                                                                                justify-content: center;
+                                                                                                margin-bottom: 20px;
+                                                                                                font-size: 1.25rem;
+                                                                                              }
+
+                                                                                              .card-icon.indigo {
+                                                                                                background: rgba(99, 102, 241, 0.15);
+                                                                                                color: #818cf8;
+                                                                                              }
+
+                                                                                              .card-icon.amber {
+                                                                                                background: rgba(245, 158, 11, 0.15);
+                                                                                                color: #fbbf24;
+                                                                                              }
+
+                                                                                              .card-icon.emerald {
+                                                                                                background: rgba(16, 185, 129, 0.15);
+                                                                                                color: #34d399;
+                                                                                              }
+
+                                                                                              .card-icon.cyan {
+                                                                                                background: rgba(6, 182, 212, 0.15);
+                                                                                                color: #22d3ee;
+                                                                                              }
+
+                                                                                              .card h3 {
+                                                                                                font-size: 1.2rem;
+                                                                                                font-weight: 700;
+                                                                                                margin-bottom: 10px;
+                                                                                                color: #f1f5f9;
+                                                                                              }
+
+                                                                                              .card p {
+                                                                                                .feature-item p {
+                                                                                                  font-size: 0.88rem;
+                                                                                                  color: var(--text-muted);
+                                                                                                  font-size: 0.95rem;
+                                                                                                  line-height: 1.6;
+                                                                                                }
+
+                                                                                                /* Comparison Table */
+                                                                                                /* Comparison Table Clean */
+                                                                                                .comparison-section {
+                                                                                                  margin: 80px 0;
+                                                                                                  padding: 40px 0 60px;
+                                                                                                  border-top: 1px solid var(--card-border);
+                                                                                                }
+
+                                                                                                .section-title {
+                                                                                                  text-align: center;
+                                                                                                  font-size: 2rem;
+                                                                                                  font-weight: 700;
+                                                                                                  margin-bottom: 12px;
+                                                                                                }
+
+                                                                                                .section-subtitle {
+                                                                                                  text-align: center;
+                                                                                                  color: var(--text-muted);
+                                                                                                  font-size: 1.05rem;
+                                                                                                  margin-bottom: 40px;
+                                                                                                }
+
+                                                                                                .table-wrap {
+                                                                                                  .table-clean {
+                                                                                                    width: 100%;
+                                                                                                    border-collapse: collapse;
+                                                                                                    text-align: left;
+                                                                                                    font-size: 0.9rem;
+                                                                                                    background: var(--card-bg);
+                                                                                                    border: 1px solid var(--card-border);
+                                                                                                    border-radius: 16px;
+                                                                                                    border-radius: 8px;
+                                                                                                    overflow: hidden;
+                                                                                                  }
+
+                                                                                                  table {
+                                                                                                    width: 100%;
+                                                                                                    border-collapse: collapse;
+                                                                                                    text-align: left;
+                                                                                                  }
+
+                                                                                                  th,
+                                                                                                  td {
+                                                                                                    padding: 16px 24px;
+
+                                                                                                    .table-clean th,
+                                                                                                    .table-clean td {
+                                                                                                      padding: 14px 20px;
+                                                                                                      border-bottom: 1px solid var(--card-border);
+                                                                                                    }
+
+                                                                                                    th {
+                                                                                                      background: rgba(255, 255, 255, 0.03);
+                                                                                                      color: var(--text-muted);
+                                                                                                      font-size: 0.85rem;
+
+                                                                                                      .table-clean th {
+                                                                                                        background: #121828;
+                                                                                                        color: var(--text-sub);
+                                                                                                        font-size: 0.78rem;
+                                                                                                        text-transform: uppercase;
+                                                                                                        letter-spacing: 0.05em;
+                                                                                                        letter-spacing: 0.06em;
+                                                                                                        font-weight: 700;
+                                                                                                      }
+
+                                                                                                      td {
+                                                                                                        font-size: 0.95rem;
+
+                                                                                                        .table-clean tr:last-child td {
+                                                                                                          border-bottom: none;
+                                                                                                        }
+
+                                                                                                        .check {
+                                                                                                          color: var(--accent-emerald);
+                                                                                                          font-weight: 700;
+                                                                                                        }
+
+                                                                                                        .cross {
+                                                                                                          color: #ef4444;
+                                                                                                          font-weight: 700;
+                                                                                                        }
+
+                                                                                                        /* Code & Setup */
+                                                                                                        .code-box {
+                                                                                                          background: #060911;
+                                                                                                          border: 1px solid var(--card-border);
+                                                                                                          border-radius: 12px;
+                                                                                                          padding: 20px;
+                                                                                                          font-family: 'JetBrains Mono', monospace;
+                                                                                                          font-size: 0.9rem;
+                                                                                                          color: #e2e8f0;
+                                                                                                          position: relative;
+                                                                                                          margin: 20px 0;
+                                                                                                          overflow-x: auto;
+
+                                                                                                          .status-ok {
+                                                                                                            color: var(--emerald);
+                                                                                                            font-weight: 600;
+                                                                                                          }
+
+                                                                                                          .code-box code {
+                                                                                                            color: #38bdf8;
+                                                                                                          }
+
+                                                                                                          .status-fail {
+                                                                                                            color: #ef4444;
+                                                                                                            font-weight: 500;
+                                                                                                          }
+
+                                                                                                          /* Walkthrough steps */
+                                                                                                          .steps {
+                                                                                                            display: flex;
+                                                                                                            flex-direction: column;
+                                                                                                            gap: 20px;
+                                                                                                            margin: 40px 0;
+
+                                                                                                            /* Quick Install */
+                                                                                                            .install-section {
+                                                                                                              padding: 40px 0 70px;
+                                                                                                              border-top: 1px solid var(--card-border);
+                                                                                                            }
+
+                                                                                                            .step-item {
+                                                                                                              display: flex;
+                                                                                                              gap: 20px;
+
+                                                                                                              .steps-row {
+                                                                                                                display: grid;
+                                                                                                                grid-template-columns: repeat(3, 1fr);
+                                                                                                                gap: 16px;
+                                                                                                                margin-top: 24px;
+                                                                                                                text-align: left;
+                                                                                                              }
+
+                                                                                                              .step-card {
+                                                                                                                background: var(--card-bg);
+                                                                                                                border: 1px solid var(--card-border);
+                                                                                                                border-radius: 12px;
+                                                                                                                padding: 24px;
+                                                                                                                border-radius: 8px;
+                                                                                                                padding: 20px;
+                                                                                                              }
+
+                                                                                                              .step-num {
+                                                                                                                width: 36px;
+                                                                                                                height: 36px;
+                                                                                                                border-radius: 50%;
+                                                                                                                background: rgba(99, 102, 241, 0.15);
+                                                                                                                color: var(--accent-indigo);
+                                                                                                                display: flex;
+                                                                                                                align-items: center;
+                                                                                                                justify-content: center;
+
+                                                                                                                .step-badge {
+                                                                                                                  font-size: 0.72rem;
+                                                                                                                  font-weight: 700;
+                                                                                                                  flex-shrink: 0;
+                                                                                                                  color: #818cf8;
+                                                                                                                  margin-bottom: 10px;
+                                                                                                                  display: inline-block;
+                                                                                                                  font-family: var(--mono);
+                                                                                                                }
+
+                                                                                                                .step-content h4 {
+                                                                                                                  font-size: 1.1rem;
+
+                                                                                                                  .step-card h4 {
+                                                                                                                    font-size: 0.98rem;
+                                                                                                                    font-weight: 600;
+                                                                                                                    margin-bottom: 6px;
+                                                                                                                  }
+
+                                                                                                                  .step-content p {
+                                                                                                                    .step-card p {
+                                                                                                                      font-size: 0.85rem;
+                                                                                                                      color: var(--text-muted);
+                                                                                                                      font-size: 0.95rem;
+                                                                                                                      line-height: 1.5;
+                                                                                                                    }
+
+                                                                                                                    .step-card code {
+                                                                                                                      font-family: var(--mono);
+                                                                                                                      background: #172033;
+                                                                                                                      padding: 2px 6px;
+                                                                                                                      border-radius: 4px;
+                                                                                                                      font-size: 0.8rem;
+                                                                                                                      color: #cbd5e1;
+                                                                                                                    }
+
+                                                                                                                    /* Footer */
+                                                                                                                    footer {
+                                                                                                                      border-top: 1px solid var(--card-border);
+                                                                                                                      padding: 40px 0;
+                                                                                                                      padding: 30px 0;
+                                                                                                                      color: var(--text-sub);
+                                                                                                                      font-size: 0.85rem;
+                                                                                                                      text-align: center;
+                                                                                                                      color: var(--text-sub);
+                                                                                                                      font-size: 0.9rem;
+                                                                                                                      margin-top: 80px;
+                                                                                                                    }
+
+                                                                                                                    footer a {
+                                                                                                                      color: var(--text-muted);
+                                                                                                                      text-decoration: none;
+                                                                                                                    }
+
+                                                                                                                    footer a:hover {
+                                                                                                                      color: var(--text);
+                                                                                                                    }
+
+                                                                                                                    footer a {
+                                                                                                                      color: var(--text-muted);
+                                                                                                                      text-decoration: none;
+                                                                                                                    }
+
+                                                                                                                    footer a:hover {
+                                                                                                                      color: #fff;
+                                                                                                                    }
+
+                                                                                                                    @media (max-width: 860px) {
+                                                                                                                      .stage-body {
+                                                                                                                        grid-template-columns: 1fr;
+                                                                                                                      }
+
+                                                                                                                      .features-grid,
+                                                                                                                      .steps-row {
+                                                                                                                        grid-template-columns: 1fr;
+                                                                                                                      }
+
+                                                                                                                      .hero h1 {
+                                                                                                                        font-size: 2.2rem;
+                                                                                                                      }
+                                                                                                                    }
   </style>
 </head>
+
 <body>
 
+  <!-- Navigation -->
   <!-- Top Navigation -->
   <header>
-    <div class="container nav-inner">
-      <a href="#" class="brand">
-        <img src="assets/icons/icon48.png" alt="Password Manager">
-        <span>Password Manager</span>
-      </a>
-      <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#comparison">Comparison</a>
-        <a href="#install">Install</a>
-        <a href="wiki/index.html">Wiki Docs</a>
-        <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank" class="btn">GitHub</a>
+    <div class="container nav-wrap">
+      <div class="container nav-inner">
+        <a href="#" class="brand">
+          <img src="assets/icons/icon48.png" alt="Password Manager">
+          <span>Password Manager</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#install">Installation</a>
+          <a href="#walkthrough">Walkthrough</a>
+          <a href="#comparison">Comparison</a>
+          <a href="#install">Install</a>
+          <a href="wiki/index.html">Wiki Docs</a>
+          <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank" class="btn">GitHub
+            Repo</a>
+          <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank" class="btn">GitHub</a>
+        </div>
       </div>
-    </div>
   </header>
 
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <div class="hero-badge">
-        <span>⚡ Insecure HTTP Autofill Solved</span>
-      </div>
-      <h1>Password Autofill That Works On<br><span>HTTP, Localhost & Internal IPs</span></h1>
-      <p>Modern Chrome disables password dropdowns on unencrypted HTTP connections with strict warnings. Password Manager gives developers and sysadmins reliable, isolated autofill across all local dev ports, IoT hardware, and staging servers.</p>
-      
-      <div class="hero-actions">
-        <a href="#install" class="btn">Load in Chrome (60s)</a>
-        <a href="wiki/index.html" class="btn btn-secondary">Read Wiki Architecture</a>
-      </div>
+      <div class="badge-pill">
+        <span>🛡️ Manifest V3 &bull; Closed Shadow DOM &bull; Zero External Dependencies</span>
+        <div class="hero-badge">
+          <span>⚡ Insecure HTTP Autofill Solved</span>
+        </div>
+        <h1>Autofill Anywhere.<br><span class="gradient">Even On Insecure HTTP Sites.</span></h1>
+        <p>Modern Google Chrome strictly blocks password suggestions on unencrypted HTTP, localhost, and IoT hardware.
+          Password Manager provides seamless, secure in-page autofill and vault management anywhere you develop or work.
+        </p>
+        <h1>Password Autofill That Works On<br><span>HTTP, Localhost & Internal IPs</span></h1>
+        <p>Modern Chrome disables password dropdowns on unencrypted HTTP connections with strict warnings. Password
+          Manager gives developers and sysadmins reliable, isolated autofill across all local dev ports, IoT hardware,
+          and staging servers.</p>
 
-      <!-- Real Split Showcase Mockup -->
-      <div class="showcase-stage">
-        <div class="stage-header">
-          <div class="stage-dots">
-            <span class="stage-dot"></span>
-            <span class="stage-dot"></span>
-            <span class="stage-dot"></span>
-          </div>
-          <div class="stage-address">
-            <span class="badge-insecure">Not Secure</span>
-            <span>http://localhost:8899/index.html</span>
-          </div>
-          <div>Manifest V3 &bull; Closed Shadow DOM</div>
+        <div class="hero-actions">
+          <a href="#install" class="btn">Get Started & Quickstart</a>
+          <a href="wiki/index.html" class="btn btn-secondary">Explore The Wiki</a>
+          <a href="#install" class="btn">Load in Chrome (60s)</a>
+          <a href="wiki/index.html" class="btn btn-secondary">Read Wiki Architecture</a>
         </div>
 
-        <div class="stage-body">
-          <!-- Left: In-Page Autofill Form & Floating Dropdown -->
-          <div class="pane-card">
-            <div class="pane-label">In-Page Experience</div>
-            <div class="pane-title">Router & Dev Console Sign In</div>
-            <div class="pane-desc">Simulated local login form on unencrypted HTTP port 8899</div>
-
-            <div class="mock-form-group">
-              <label class="mock-form-label">Username</label>
-              <div class="mock-field-wrap">
-                <input type="text" class="mock-input focus-ring" value="admin" readonly>
-                <div class="mock-key-badge" title="Password Manager Field Trigger">🔑</div>
+        <!-- Realistic Browser & Extension Mockup -->
+        <div class="mockup-container">
+          <div class="browser-frame">
+            <!-- Window Header Bar -->
+            <div class="browser-bar">
+              <div class="browser-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
               </div>
-            </div>
-
-            <div class="mock-form-group">
-              <label class="mock-form-label">Password</label>
-              <div class="mock-field-wrap">
-                <input type="password" class="mock-input" value="••••••••••••" readonly>
+              <div class="browser-url-bar">
+                <span class="insecure-tag">⚠ Not Secure</span>
+                <span class="url-text">http://localhost:8899/index.html</span>
               </div>
-            </div>
-
-            <!-- Floating Picker Dropdown -->
-            <div class="mock-floating-menu">
-              <div class="menu-header">
-                <span class="menu-header-site">⚡ Logins for localhost:8899</span>
-                <span class="menu-header-badge">HTTP Ready</span>
+              <div class="browser-ext-icon" title="Chrome Password Manager Active">
+                <img src="assets/icons/icon16.png" alt="Ext">
               </div>
-              <div class="menu-search">
-                <input type="text" placeholder="Search or choose account..." readonly>
-              </div>
-              <div class="menu-row">
-                <div class="row-meta">
-                  <div class="row-avatar">A</div>
-                  <div>
-                    <div class="row-user">admin</div>
-                    <div class="row-pass">•••••••••••• &bull; Used just now</div>
+              <!-- Real Split Showcase Mockup -->
+              <div class="showcase-stage">
+                <div class="stage-header">
+                  <div class="stage-dots">
+                    <span class="stage-dot"></span>
+                    <span class="stage-dot"></span>
+                    <span class="stage-dot"></span>
                   </div>
+                  <div class="stage-address">
+                    <span class="badge-insecure">Not Secure</span>
+                    <span>http://localhost:8899/index.html</span>
+                  </div>
+                  <div>Manifest V3 &bull; Closed Shadow DOM</div>
                 </div>
-                <button type="button" class="btn-fill">Fill</button>
-              </div>
-            </div>
-          </div>
 
-          <!-- Right: Actual Extension Popup Replica -->
-          <div class="mock-popup-container">
-            <div class="popup-top">
-              <div class="popup-brand">
-                <img src="assets/icons/icon16.png" width="16" height="16" alt="Icon">
-                <span>Password Manager</span>
-              </div>
-              <div class="popup-site-chip">
-                <span class="dot-amber"></span>
-                <span>localhost</span>
-              </div>
-            </div>
+                <!-- Browser Window Body -->
+                <div class="browser-content">
+                  <!-- Simulated In-Page Login Form -->
+                  <div class="mock-page-form">
+                    <h4>Internal Admin Sign In</h4>
+                    <p>Staging Dev Console &bull; HTTP Origin</p>
+                    <div class="stage-body">
+                      <!-- Left: In-Page Autofill Form & Floating Dropdown -->
+                      <div class="pane-card">
+                        <div class="pane-label">In-Page Experience</div>
+                        <div class="pane-title">Router & Dev Console Sign In</div>
+                        <div class="pane-desc">Simulated local login form on unencrypted HTTP port 8899</div>
 
-            <div class="popup-tabs">
-              <div class="popup-tab active">This Site (1)</div>
-              <div class="popup-tab">Vault</div>
-              <div class="popup-tab">Generator</div>
-              <div class="popup-tab">Settings</div>
-            </div>
+                        <div class="mock-field">
+                          <label>Username</label>
+                          <div class="mock-input-wrap">
+                            <input type="text" class="mock-input active-field" value="admin" readonly>
+                            <div class="mock-inline-key" title="Password Manager Trigger">🔑</div>
+                          </div>
+                          <div class="mock-form-group">
+                            <label class="mock-form-label">Username</label>
+                            <div class="mock-field-wrap">
+                              <input type="text" class="mock-input focus-ring" value="admin" readonly>
+                              <div class="mock-key-badge" title="Password Manager Field Trigger">🔑</div>
+                            </div>
+                          </div>
 
-            <div class="popup-body">
-              <div class="popup-card">
-                <div class="popup-card-header">
-                  <span class="popup-card-title">localhost:8899</span>
-                  <span class="badge-insecure">HTTP</span>
-                </div>
-                <div class="popup-card-sub">Active tab matched origin</div>
-                <div class="popup-card-item" style="margin-top: 8px;">
-                  <span class="popup-item-user">👤 admin</span>
-                  <span class="popup-item-tag">Ready to Fill</span>
-                </div>
-              </div>
+                          <div class="mock-field">
+                            <label>Password</label>
+                            <div class="mock-input-wrap">
+                              <input type="password" class="mock-input" value="••••••••••••" readonly>
+                            </div>
+                            <div class="mock-form-group">
+                              <label class="mock-form-label">Password</label>
+                              <div class="mock-field-wrap">
+                                <input type="password" class="mock-input" value="••••••••••••" readonly>
+                              </div>
+                            </div>
 
-              <div class="popup-card">
-                <div class="popup-card-header">
-                  <span class="popup-card-title">CSPRNG Generator</span>
-                  <span style="color: #10b981; font-size: 0.68rem; font-weight: 700;">Active</span>
-                </div>
-                <div class="popup-card-item" style="font-family: var(--mono); color: #818cf8; font-size: 0.72rem;">
-                  kR9#mP$2vL8*wQ1x
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                            <!-- Floating In-Page Picker Mockup -->
+                            <div class="mock-floating-picker">
+                              <div class="picker-top">
+                                <span class="picker-site-tag">⚡ localhost:8899</span>
+                                <span class="picker-badge">HTTP Unlocked</span>
+                              </div>
+                              <div class="picker-search">
+                                <input type="text" class="picker-search-input" placeholder="Search or choose account..."
+                                  value="" readonly>
+                              </div>
+                              <div class="picker-item">
+                                <div class="picker-item-left">
+                                  <div class="picker-avatar">A</div>
+                                  <div>
+                                    <div class="picker-user">admin</div>
+                                    <div class="picker-pass">•••••••••••• &bull; Used just now</div>
+                                  </div>
+                                  <!-- Floating Picker Dropdown -->
+                                  <div class="mock-floating-menu">
+                                    <div class="menu-header">
+                                      <span class="menu-header-site">⚡ Logins for localhost:8899</span>
+                                      <span class="menu-header-badge">HTTP Ready</span>
+                                    </div>
+                                    <div class="menu-search">
+                                      <input type="text" placeholder="Search or choose account..." readonly>
+                                    </div>
+                                    <div class="menu-row">
+                                      <div class="row-meta">
+                                        <div class="row-avatar">A</div>
+                                        <div>
+                                          <div class="row-user">admin</div>
+                                          <div class="row-pass">•••••••••••• &bull; Used just now</div>
+                                        </div>
+                                        <button type="button" class="picker-fill-btn">Fill</button>
+                                      </div>
+                                      <button type="button" class="btn-fill">Fill</button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Simulated Extension Popup Window Preview -->
+                                <div class="mock-popup-preview">
+                                  <div class="mock-popup-header">
+                                    <div class="mock-popup-title">
+                                      <img src="assets/icons/icon16.png" width="16" height="16" alt="Logo">
+                                      <span>Password Manager</span>
+                                    </div>
+                                    <span class="picker-badge"
+                                      style="background: rgba(99, 102, 241, 0.2); color: #818cf8;">v1.0.0</span>
+                                    <!-- Right: Actual Extension Popup Replica -->
+                                    <div class="mock-popup-container">
+                                      <div class="popup-top">
+                                        <div class="popup-brand">
+                                          <img src="assets/icons/icon16.png" width="16" height="16" alt="Icon">
+                                          <span>Password Manager</span>
+                                        </div>
+                                        <div class="mock-popup-tabs">
+                                          <div class="mock-popup-tab active">Active Site (1)</div>
+                                          <div class="mock-popup-tab">All Vault (12)</div>
+                                          <div class="mock-popup-tab">Settings</div>
+                                          <div class="popup-site-chip">
+                                            <span class="dot-amber"></span>
+                                            <span>localhost</span>
+                                          </div>
+                                          <div class="mock-popup-body">
+                                            <div class="mock-vault-card">
+                                              <div class="mock-card-head">
+                                                <span>CURRENT SITE</span>
+                                                <span style="color: #f59e0b; font-weight: 700;">INSECURE HTTP</span>
+                                              </div>
+                                              <div class="mock-card-domain">localhost:8899</div>
+                                              <div class="mock-card-actions">
+                                                <span>👤 admin</span>
+                                                <span style="color: #10b981; font-weight: 600;">✓ Ready to
+                                                  autofill</span>
+                                              </div>
+                                            </div>
+
+                                            <div class="popup-tabs">
+                                              <div class="popup-tab active">This Site (1)</div>
+                                              <div class="popup-tab">Vault</div>
+                                              <div class="popup-tab">Generator</div>
+                                              <div class="popup-tab">Settings</div>
+                                            </div>
+
+                                            <div class="popup-body">
+                                              <div class="popup-card">
+                                                <div class="popup-card-header">
+                                                  <span class="popup-card-title">localhost:8899</span>
+                                                  <span class="badge-insecure">HTTP</span>
+                                                </div>
+                                                <div class="popup-card-sub">Active tab matched origin</div>
+                                                <div class="popup-card-item" style="margin-top: 8px;">
+                                                  <span class="popup-item-user">👤 admin</span>
+                                                  <span class="popup-item-tag">Ready to Fill</span>
+                                                </div>
+                                              </div>
+
+                                              <div class="mock-vault-card" style="opacity: 0.7;">
+                                                <div class="mock-card-head">
+                                                  <span>SAVED SITE</span>
+                                                  <span style="color: #10b981; font-weight: 700;">HTTPS</span>
+                                                </div>
+                                                <div class="mock-card-domain">github.com</div>
+                                                <div class="mock-card-actions">
+                                                  <span>👤 developer@work</span>
+                                                  <span>••••••••</span>
+                                                </div>
+                                                <div class="popup-card">
+                                                  <div class="popup-card-header">
+                                                    <span class="popup-card-title">CSPRNG Generator</span>
+                                                    <span
+                                                      style="color: #10b981; font-size: 0.68rem; font-weight: 700;">Active</span>
+                                                  </div>
+                                                  <div class="popup-card-item"
+                                                    style="font-family: var(--mono); color: #818cf8; font-size: 0.72rem;">
+                                                    kR9#mP$2vL8*wQ1x
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
   </section>
 
-  <!-- Core Features -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-head">
-        <h2>Built Specifically For Real Workflows</h2>
-        <p>No external servers, no cloud sync lock-in, and zero interference from webpage styling.</p>
-      </div>
+  <!-- Features Section -->
+  <section class="container" id="features">
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon amber">🌐</div>
+        <h3>HTTP & Localhost Autofill</h3>
+        <p>Autofill accounts on local development servers (<code>localhost:3000</code>, <code>127.0.0.1:8000</code>),
+          internal staging clusters, and network consoles without SSL warnings blocking your workflow.</p>
+        <!-- Core Features -->
+        <section class="features-section" id="features">
+          <div class="container">
+            <div class="section-head">
+              <h2>Built Specifically For Real Workflows</h2>
+              <p>No external servers, no cloud sync lock-in, and zero interference from webpage styling.</p>
+            </div>
 
-      <div class="features-grid">
-        <div class="feature-item">
-          <h3>Closed Shadow DOM</h3>
-          <p>The floating picker and inline triggers render inside <code>mode: 'closed'</code> Shadow roots. Page scripts cannot access secret values, and CSS resets cannot break layout.</p>
-        </div>
+            <div class="card">
+              <div class="card-icon indigo">🛡️</div>
+              <h3>Closed Shadow DOM Isolation</h3>
+              <p>All in-page floating dropdowns, icons, and tooltips are encapsulated inside a
+                <code>mode: 'closed'</code> Shadow DOM. Host page styles cannot distort the UI, and host scripts cannot
+                read secrets.</p>
+            </div>
+            <div class="features-grid">
+              <div class="feature-item">
+                <h3>Closed Shadow DOM</h3>
+                <p>The floating picker and inline triggers render inside <code>mode: 'closed'</code> Shadow roots. Page
+                  scripts cannot access secret values, and CSS resets cannot break layout.</p>
+              </div>
 
-        <div class="feature-item">
-          <h3>Complex Form Mapping</h3>
-          <p>Autodetects login fields, AJAX forms, and nested PHP arrays (e.g. <code>auth[user]</code>, <code>auth[password]</code>) without misidentifying database or server host inputs.</p>
-        </div>
+              <div class="card">
+                <div class="card-icon emerald">⚡</div>
+                <h3>One-Click Auto-Mapping</h3>
+                <p>Intelligently recognizes complex login forms, PHP arrays (<code>auth[user]</code>,
+                  <code>auth[password]</code>), and dispatches synthetic input and change events compatible with React,
+                  Vue, Angular, and vanilla HTML.</p>
+              </div>
+              <div class="feature-item">
+                <h3>Complex Form Mapping</h3>
+                <p>Autodetects login fields, AJAX forms, and nested PHP arrays (e.g. <code>auth[user]</code>,
+                  <code>auth[password]</code>) without misidentifying database or server host inputs.</p>
+              </div>
 
-        <div class="feature-item">
-          <h3>CSPRNG Generator</h3>
-          <p>Generates high-entropy passwords using <code>crypto.getRandomValues</code> and Fisher-Yates array shuffling to avoid modulo distribution bias.</p>
-        </div>
+              <div class="card">
+                <div class="card-icon cyan">🎲</div>
+                <h3>CSPRNG Password Generator</h3>
+                <p>Built with Web Crypto (<code>crypto.getRandomValues</code>) and Fisher-Yates array shuffling.
+                  Generates unguessable, customizable passwords with real-time entropy scoring.</p>
+              </div>
+              <div class="feature-item">
+                <h3>CSPRNG Generator</h3>
+                <p>Generates high-entropy passwords using <code>crypto.getRandomValues</code> and Fisher-Yates array
+                  shuffling to avoid modulo distribution bias.</p>
+              </div>
 
-        <div class="feature-item">
-          <h3>Local Storage Sandbox</h3>
-          <p>Vault entries are stored exclusively in Chrome's sandboxed <code>chrome.storage.local</code>. Zero telemetry and zero third-party tracking scripts.</p>
-        </div>
+              <div class="card">
+                <div class="card-icon indigo">🔍</div>
+                <h3>Search & Active Matching</h3>
+                <p>Features instant fuzzy search across your vault with visual keyword highlighting
+                  (<code>&lt;mark&gt;</code>) and intelligent multi-part Public Suffix List (PSL) domain matching.</p>
+              </div>
+              <div class="feature-item">
+                <h3>Local Storage Sandbox</h3>
+                <p>Vault entries are stored exclusively in Chrome's sandboxed <code>chrome.storage.local</code>. Zero
+                  telemetry and zero third-party tracking scripts.</p>
+              </div>
 
-        <div class="feature-item">
-          <h3>Multi-Part Domain Awareness</h3>
-          <p>Aware of Public Suffixes (e.g. <code>github.io</code>, <code>co.uk</code>, <code>vercel.app</code>) to prevent accidental cross-tenant credential exposure.</p>
-        </div>
+              <div class="card">
+                <div class="card-icon emerald">🔒</div>
+                <h3>Privacy & Sandboxed Storage</h3>
+                <p>Zero third-party trackers, zero telemetry, and zero remote servers. Everything persists inside
+                  Chrome's sandboxed <code>chrome.storage.local</code>.</p>
+                <div class="feature-item">
+                  <h3>Multi-Part Domain Awareness</h3>
+                  <p>Aware of Public Suffixes (e.g. <code>github.io</code>, <code>co.uk</code>, <code>vercel.app</code>)
+                    to prevent accidental cross-tenant credential exposure.</p>
+                </div>
 
-        <div class="feature-item">
-          <h3>JSON & CSV Portability</h3>
-          <p>Easily export or import your vault data via portable JSON or Chrome Password Manager CSV formats directly from the settings panel.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+                <div class="feature-item">
+                  <h3>JSON & CSV Portability</h3>
+                  <p>Easily export or import your vault data via portable JSON or Chrome Password Manager CSV formats
+                    directly from the settings panel.</p>
+                </div>
+              </div>
+            </div>
+        </section>
 
-  <!-- Comparison Table -->
-  <section class="comparison-section" id="comparison">
-    <div class="container">
-      <div class="section-head">
-        <h2>Native Chrome vs Password Manager</h2>
-        <p>Why native browser password auto-completion fails developers and sysadmins on internal networks.</p>
-      </div>
+        <!-- Comparison Section -->
+        <section class="container comparison-section">
+          <h2 class="section-title">Why Use Chrome Password Manager?</h2>
+          <p class="section-subtitle">Comparing native Chrome browser autofill with Password Manager for engineers &
+            sysadmins.</p>
+          <div class="table-wrap">
+            <table>
+              <!-- Comparison Table -->
+              <section class="comparison-section" id="comparison">
+                <div class="container">
+                  <div class="section-head">
+                    <h2>Native Chrome vs Password Manager</h2>
+                    <p>Why native browser password auto-completion fails developers and sysadmins on internal networks.
+                    </p>
+                  </div>
 
-      <table class="table-clean">
-        <thead>
-          <tr>
-            <th>Scenario</th>
-            <th>Native Chrome Manager</th>
-            <th>Password Manager Extension</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Insecure HTTP Origins</strong></td>
-            <td><span class="status-fail">Blocked with warning banner</span></td>
-            <td><span class="status-ok">Full autofill & selection supported</span></td>
-          </tr>
-          <tr>
-            <td><strong>Localhost & Custom Dev Ports</strong></td>
-            <td><span class="status-fail">Unreliable / Origin collision</span></td>
-            <td><span class="status-ok">Exact port & hostname scoping</span></td>
-          </tr>
-          <tr>
-            <td><strong>UI Encapsulation</strong></td>
-            <td><span class="status-fail">Global OS/Browser popup</span></td>
-            <td><span class="status-ok">Isolated Closed Shadow DOM</span></td>
-          </tr>
-          <tr>
-            <td><strong>Adminer / PHP Array Forms</strong></td>
-            <td><span class="status-fail">Fills wrong server host input</span></td>
-            <td><span class="status-ok">Targets username/password fields correctly</span></td>
-          </tr>
-          <tr>
-            <td><strong>External Cloud Dependencies</strong></td>
-            <td>Google Account Required</td>
-            <td><span class="status-ok">100% Local (chrome.storage.local)</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+                  <table class="table-clean">
+                    <thead>
+                      <tr>
+                        <th>Capability</th>
+                        <th>Native Chrome Password Manager</th>
+                        <th>Our Password Manager Extension</th>
+                        <th>Scenario</th>
+                        <th>Native Chrome Manager</th>
+                        <th>Password Manager Extension</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>HTTP / Unencrypted Origins</strong></td>
+                        <td><span class="cross">✕ Blocked (Displays warning)</span></td>
+                        <td><span class="check">✓ Fully Supported & Selectable</span></td>
+                        <td><strong>Insecure HTTP Origins</strong></td>
+                        <td><span class="status-fail">Blocked with warning banner</span></td>
+                        <td><span class="status-ok">Full autofill & selection supported</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Localhost & Custom Ports</strong></td>
+                        <td><span class="cross">✕ Erratic / Mixed Origins</span></td>
+                        <td><span class="check">✓ Precise Port & Host Matching</span></td>
+                        <td><strong>Localhost & Custom Dev Ports</strong></td>
+                        <td><span class="status-fail">Unreliable / Origin collision</span></td>
+                        <td><span class="status-ok">Exact port & hostname scoping</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Isolated Closed Shadow DOM</strong></td>
+                        <td><span class="cross">✕ Browser Native Overlay</span></td>
+                        <td><span class="check">✓ Closed Shadow DOM UI</span></td>
+                        <td><strong>UI Encapsulation</strong></td>
+                        <td><span class="status-fail">Global OS/Browser popup</span></td>
+                        <td><span class="status-ok">Isolated Closed Shadow DOM</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Multi-Field PHP Forms (Adminer)</strong></td>
+                        <td><span class="cross">✕ Fills wrong server field</span></td>
+                        <td><span class="check">✓ Accurate Username/Pass Target</span></td>
+                        <td><strong>Adminer / PHP Array Forms</strong></td>
+                        <td><span class="status-fail">Fills wrong server host input</span></td>
+                        <td><span class="status-ok">Targets username/password fields correctly</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>JSON / CSV Vault Portability</strong></td>
+                        <td><span class="cross">✕ Complex CSV import</span></td>
+                        <td><span class="check">✓ Instant JSON/CSV Import & Export</span></td>
+                        <td><strong>External Cloud Dependencies</strong></td>
+                        <td>Google Account Required</td>
+                        <td><span class="status-ok">100% Local (chrome.storage.local)</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
 
-  <!-- Quick Installation -->
-  <section class="install-section" id="install">
-    <div class="container">
-      <div class="section-head">
-        <h2>Load Unpacked In 60 Seconds</h2>
-        <p>No build step, no bundlers, no npm install. Pure vanilla Manifest V3.</p>
-      </div>
+              <!-- Installation Walkthrough -->
+              <section class="container" id="install">
+                <h2 class="section-title">Quick Installation Walkthrough</h2>
+                <p class="section-subtitle">Set up the unpacked Manifest V3 extension in under 60 seconds.</p>
+                <!-- Quick Installation -->
+                <section class="install-section" id="install">
+                  <div class="container">
+                    <div class="section-head">
+                      <h2>Load Unpacked In 60 Seconds</h2>
+                      <p>No build step, no bundlers, no npm install. Pure vanilla Manifest V3.</p>
+                    </div>
 
-      <div class="steps-row">
-        <div class="step-card">
-          <span class="step-badge">STEP 01</span>
-          <h4>Open Extensions</h4>
-          <p>In Chrome, navigate to <code>chrome://extensions</code> in your URL address bar.</p>
-        </div>
+                    <div class="steps">
+                      <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                          <h4>Open Chrome Extensions</h4>
+                          <p>Navigate to <code>chrome://extensions</code> in your Google Chrome address bar.</p>
+                          <div class="steps-row">
+                            <div class="step-card">
+                              <span class="step-badge">STEP 01</span>
+                              <h4>Open Extensions</h4>
+                              <p>In Chrome, navigate to <code>chrome://extensions</code> in your URL address bar.</p>
+                            </div>
+                          </div>
 
-        <div class="step-card">
-          <span class="step-badge">STEP 02</span>
-          <h4>Developer Mode</h4>
-          <p>Toggle the <strong>Developer mode</strong> switch in the upper-right corner of the Extensions page.</p>
-        </div>
+                          <div class="step-item">
+                            <div class="step-num">2</div>
+                            <div class="step-content">
+                              <h4>Enable Developer Mode</h4>
+                              <p>Toggle the <strong>Developer mode</strong> switch in the upper-right corner of the
+                                Extensions dashboard.</p>
+                              <div class="step-card">
+                                <span class="step-badge">STEP 02</span>
+                                <h4>Developer Mode</h4>
+                                <p>Toggle the <strong>Developer mode</strong> switch in the upper-right corner of the
+                                  Extensions page.</p>
+                              </div>
+                            </div>
 
-        <div class="step-card">
-          <span class="step-badge">STEP 03</span>
-          <h4>Load Unpacked</h4>
-          <p>Click <strong>Load unpacked</strong> and select the directory containing <code>manifest.json</code>.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+                            <div class="step-item">
+                              <div class="step-num">3</div>
+                              <div class="step-content">
+                                <div class="step-card">
+                                  <span class="step-badge">STEP 03</span>
+                                  <h4>Load Unpacked</h4>
+                                  <p>Click the <strong>Load unpacked</strong> button in the upper-left corner and select
+                                    the root directory of this repository.</p>
+                                  <p>Click <strong>Load unpacked</strong> and select the directory containing
+                                    <code>manifest.json</code>.</p>
+                                </div>
+                              </div>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p>Chrome Password Manager &bull; Open Source Manifest V3 Extension</p>
-      <p style="margin-top: 6px;">
-        <a href="wiki/index.html">Wiki Documentation</a> &bull; 
-        <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank">GitHub Repository</a>
-      </p>
-    </div>
-  </footer>
+                              <div class="step-item">
+                                <div class="step-num">4</div>
+                                <div class="step-content">
+                                  <h4>Pin for Quick Access</h4>
+                                  <p>Click Chrome's Extensions puzzle icon in the toolbar and pin <strong>Password
+                                      Manager</strong> for fast access.</p>
+                                </div>
+                              </div>
+                            </div>
+                </section>
+
+                <!-- Walkthrough Section -->
+                <section class="container" id="walkthrough">
+                  <h2 class="section-title">Interactive Walkthrough & Testing</h2>
+                  <p class="section-subtitle">Verify autofill on an insecure HTTP origin using the built-in test server.
+                  </p>
+
+                  <p style="color: var(--text-muted); margin-bottom: 16px;">Run the local python test server to launch
+                    an HTTP test lab:</p>
+                  <div class="code-box">
+                    <code>cd test-page && python3 server.py</code>
+                  </div>
+
+                  <p style="color: var(--text-muted); margin-top: 16px;">Then visit
+                    <code>http://localhost:8899/index.html</code> in Chrome:
+                    <br>1. Click inside the Username or Password input field to reveal the floating in-page picker.
+                    <br>2. Select the demo credentials to autofill with a subtle success glow.
+                    <br>3. Submit the form to test the isolated "Save to Password Manager" prompt banner!
+                  </p>
+                </section>
+
+                <!-- Footer -->
+                <footer>
+                  <div class="container">
+                    <p>Chrome Password Manager &bull; Open Source Manifest V3 Extension</p>
+                    <p style="margin-top: 8px;">
+                    <p style="margin-top: 6px;">
+                      <a href="wiki/index.html">Wiki Documentation</a> &bull;
+                      <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank">GitHub</a>
+                      <a href="https://github.com/jazeel-zainudeen/chrome-password-manager" target="_blank">GitHub
+                        Repository</a>
+                    </p>
+                  </div>
+                </footer>
 
 </body>
+
 </html>
