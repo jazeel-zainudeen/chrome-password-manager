@@ -999,23 +999,27 @@
   /**
    * Closes any active delete confirmation popover in the dropdown.
    */
-  function closeActiveContentDeleteConfirm() {
-    hideInPageTooltip();
-    if (!activeDropdown) return;
-    activeDropdown.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
-      if (p._timeoutId) clearTimeout(p._timeoutId);
-      if (p.parentNode) {
-        try {
-          p.parentNode.removeChild(p);
-        } catch (_) {}
-      }
-    });
-    activeDropdown.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
-      b.classList.remove('active-delete');
-    });
-    activeDropdown.querySelectorAll('.pw-cred-item.has-active-confirm').forEach(i => {
-      i.classList.remove('has-active-confirm');
-    });
+  function closeActiveContentDeleteConfirm(scopeEl) {
+    hideInPageTooltip(true);
+    const root = scopeEl || activeDropdown || (shadowRoot ? shadowRoot.querySelector('.passwords-dropdown') : null);
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+
+    try {
+      root.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
+        if (p._timeoutId) clearTimeout(p._timeoutId);
+        if (p.parentNode) {
+          try {
+            p.parentNode.removeChild(p);
+          } catch (_) {}
+        }
+      });
+      root.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
+        b.classList.remove('active-delete');
+      });
+      root.querySelectorAll('.pw-cred-item.has-active-confirm').forEach(i => {
+        i.classList.remove('has-active-confirm');
+      });
+    } catch (_) {}
   }
 
   /**
@@ -1201,8 +1205,8 @@
         cancelBtn.addEventListener('click', (evt) => {
           evt.stopPropagation();
           evt.preventDefault();
-          hideInPageTooltip();
-          closeActiveContentDeleteConfirm();
+          hideInPageTooltip(true);
+          closeActiveContentDeleteConfirm(dropdown);
         });
 
         deleteWrap.appendChild(pop);
