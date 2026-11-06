@@ -6,7 +6,6 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting",
     "tabs"
   ],
   "host_permissions": [
@@ -39,16 +38,6 @@
       ],
       "run_at": "document_start",
       "all_frames": true
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "chrome_passwords.json"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
     }
   ]
 }

@@ -156,7 +156,7 @@
     containerEl.id = 'passwords-root';
     containerEl.style.cssText = 'all: initial; position: absolute; top: 0; left: 0; z-index: 2147483647; pointer-events: none;';
 
-    shadowRoot = containerEl.attachShadow({ mode: 'open' });
+    shadowRoot = containerEl.attachShadow({ mode: 'closed' });
 
     // Inject styles into shadow DOM
     const style = document.createElement('style');
@@ -182,6 +182,7 @@
       </svg>
     `;
     fieldIcon.addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
       e.preventDefault();
       e.stopPropagation();
       if (currentTargetInput) {
@@ -914,12 +915,12 @@
               <span>${highlightedSource}</span>
             </div>
           ` : ''}
-          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}" data-tooltip="${escapeHtml(cred.password)}">
+          <div class="pw-cred-pass">
             <svg class="pw-pass-key-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <span class="pw-pass-text"></span>
+            <span class="pw-pass-text">••••••••</span>
           </div>
           ${lastUsedText ? `<div class="pw-last-used-sub">${escapeHtml(lastUsedText)}</div>` : ''}
         </div>
@@ -1059,6 +1060,7 @@
     }
 
     dropdown.addEventListener('click', async (e) => {
+      if (!e.isTrusted) return;
       // If an active delete confirm popover is open, clicking elsewhere inside dropdown dismisses it
       if (activeDropdown && activeDropdown.querySelector('.pw-delete-confirm-popover')) {
         const isDeleteAction = e.target.closest('.pw-btn-delete, .pw-delete-confirm-popover');
@@ -1074,9 +1076,11 @@
       if (togglePassBtn) {
         e.stopPropagation();
         const credItem = togglePassBtn.closest('.pw-cred-item');
+        const credId = credItem ? credItem.dataset.id : null;
+        const cred = currentCredentials.find(c => c.id === credId);
         const passEl = credItem ? credItem.querySelector('.pw-cred-pass') : null;
-        if (passEl) {
-          const rawPass = passEl.dataset.pass || '';
+        if (passEl && cred) {
+          const rawPass = cred.password || '';
           const passTextEl = passEl.querySelector('.pw-pass-text');
           const eyeOpen = togglePassBtn.querySelector('.pw-eye-open');
           const eyeClosed = togglePassBtn.querySelector('.pw-eye-closed');
@@ -1094,7 +1098,7 @@
             if (eyeClosed) eyeClosed.style.display = 'none';
             setTimeout(() => {
               if (!passEl.classList.contains('pw-revealed') && passTextEl) {
-                passTextEl.textContent = '';
+                passTextEl.textContent = '••••••••';
               }
             }, 200);
           }
@@ -1406,11 +1410,11 @@
       timestamp: Date.now()
     };
 
-    // Store in sessionStorage to survive page navigation/reload
+    // Store in service worker memory (isolated from page scripts)
     try {
-      sessionStorage.setItem('pw_pending_save', JSON.stringify(credData));
+      chrome.runtime.sendMessage({ type: 'SET_PENDING_SAVE', credData }).catch(() => {});
     } catch (e) {
-      // Ignore quota/access errors
+      // Ignore context errors
     }
 
     showSavePrompt(credData);
@@ -1425,9 +1429,9 @@
     if (!settings || !settings.promptToSaveOnSubmit) return;
     let pending = null;
     try {
-      const raw = sessionStorage.getItem('pw_pending_save');
-      if (raw) {
-        pending = JSON.parse(raw);
+      const resp = await chrome.runtime.sendMessage({ type: 'GET_PENDING_SAVE' });
+      if (resp && resp.credData) {
+        pending = resp.credData;
       }
     } catch (e) {
       return;
@@ -1440,7 +1444,7 @@
     const sameOrigin = pending.origin === window.location.origin;
 
     if (!isRecent || !sameOrigin) {
-      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      try { chrome.runtime.sendMessage({ type: 'CLEAR_PENDING_SAVE' }).catch(() => {}); } catch (e) { }
       return;
     }
 
@@ -1453,7 +1457,7 @@
 
     if (matchingCred && matchingCred.password === pending.password) {
       // Already matching and saved
-      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      try { chrome.runtime.sendMessage({ type: 'CLEAR_PENDING_SAVE' }).catch(() => {}); } catch (e) { }
       return;
     }
 
@@ -1558,7 +1562,7 @@
     });
 
     const dismiss = () => {
-      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      try { chrome.runtime.sendMessage({ type: 'CLEAR_PENDING_SAVE' }).catch(() => {}); } catch (e) { }
       prompt.classList.remove('pw-prompt-visible');
       setTimeout(() => prompt.remove(), 250);
     };
@@ -1581,7 +1585,7 @@
       };
 
       await OmniStorage.saveCredential(credToSave);
-      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      try { chrome.runtime.sendMessage({ type: 'CLEAR_PENDING_SAVE' }).catch(() => {}); } catch (e) { }
 
       try {
         if (window.PasswordCredential && navigator.credentials) {
@@ -1657,7 +1661,9 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/`/g, '&#96;');
   }
 
   /**

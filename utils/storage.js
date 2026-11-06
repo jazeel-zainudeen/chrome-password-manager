@@ -57,16 +57,46 @@ const OmniStorage = (() => {
     return h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '::1' || h.startsWith('127.');
   }
 
+  // Common multi-part public suffixes and dynamic hosting domains
+  const MULTI_PART_SUFFIXES = new Set([
+    'co.uk', 'gov.uk', 'ac.uk', 'org.uk', 'net.uk',
+    'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au',
+    'co.nz', 'net.nz', 'org.nz', 'govt.nz',
+    'co.jp', 'ne.jp', 'or.jp', 'ac.jp', 'go.jp',
+    'com.br', 'net.br', 'org.br', 'gov.br',
+    'co.in', 'net.in', 'org.in', 'gen.in', 'firm.in', 'ind.in',
+    'com.sg', 'net.sg', 'org.sg', 'gov.sg',
+    'com.tr', 'edu.tr', 'gov.tr',
+    'co.za', 'org.za', 'gov.za',
+    'com.mx', 'org.mx', 'gob.mx',
+    'github.io', 'gitlab.io', 'pages.dev', 'vercel.app', 'netlify.app',
+    'herokuapp.com', 'firebaseapp.com', 'web.app', 'cloudfront.net',
+    'azurewebsites.net', 'amazonaws.com', 'onrender.com'
+  ]);
+
   /**
-   * Normalizes domain names (e.g. strips port or www).
+   * Normalizes domain names using multi-part suffix awareness.
    */
   function getBaseDomain(hostname) {
     if (!hostname) return '';
-    const parts = hostname.toLowerCase().split('.');
-    if (parts.length >= 2 && !isLocalHost(hostname)) {
+    const h = hostname.toLowerCase();
+    if (isLocalHost(h)) return h;
+
+    const parts = h.split('.');
+    if (parts.length <= 1) return h;
+
+    // Check if ends with a known multi-part suffix
+    for (let i = 2; i <= Math.min(3, parts.length - 1); i++) {
+      const suffix = parts.slice(-i).join('.');
+      if (MULTI_PART_SUFFIXES.has(suffix)) {
+        return parts.slice(-(i + 1)).join('.');
+      }
+    }
+
+    if (parts.length >= 2) {
       return parts.slice(-2).join('.');
     }
-    return hostname.toLowerCase();
+    return h;
   }
 
   /**
@@ -134,22 +164,30 @@ const OmniStorage = (() => {
    * Checks whether a stored credential matches a given URL info object.
    */
   function isCredentialMatch(cred, info) {
-    if (!cred) return false;
+    if (!cred || !info) return 0;
 
-    // 1. Exact origin match
+    // 1. Exact origin match (scheme + host + port)
     if (cred.origin && cred.origin.toLowerCase() === info.origin.toLowerCase()) {
       return 3;
+    }
+
+    const credProto = (cred.protocol || '').toLowerCase();
+    const infoProto = (info.protocol || '').toLowerCase();
+
+    // Prevent HTTPS credential downgrade: never autofill an HTTPS password into plain HTTP
+    if (credProto === 'https:' && infoProto === 'http:') {
+      return 0;
     }
 
     const credHost = (cred.hostname || '').toLowerCase();
     const infoHost = (info.hostname || '').toLowerCase();
 
-    // 2. Both are local development/loopback addresses (localhost <-> 127.0.0.1)
+    // 2. Both are local development/loopback addresses (localhost <-> 127.0.0.1) on compatible protocol
     if (isLocalHost(credHost) && isLocalHost(infoHost)) {
       return 2;
     }
 
-    // 3. Exact hostname match (e.g. across different ports)
+    // 3. Exact hostname match (e.g. across different ports or sub-paths)
     if (credHost === infoHost) {
       return 2;
     }

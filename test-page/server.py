@@ -21,7 +21,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 def run():
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
         print(f"=====================================================")
         print(f"  Passwords HTTP Insecure Test Server Running!       ")
         print(f"  URL: http://localhost:{PORT}/index.html           ")

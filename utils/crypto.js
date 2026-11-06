@@ -68,10 +68,13 @@ const OmniCrypto = (() => {
       randomChars.push(charPool[randomBuffer[i] % charPool.length]);
     }
 
-    // Combine and shuffle using Fisher-Yates
+    // Combine and shuffle using CSPRNG Fisher-Yates
     const result = [...guaranteed, ...randomChars];
+    const shuffleBuffer = new Uint32Array(result.length);
+    cryptoObj.getRandomValues(shuffleBuffer);
+
     for (let i = result.length - 1; i > 0; i--) {
-      const randIndex = Math.floor(Math.random() * (i + 1));
+      const randIndex = shuffleBuffer[i] % (i + 1);
       [result[i], result[randIndex]] = [result[randIndex], result[i]];
     }
 

@@ -65,7 +65,9 @@ def sync_passwords():
     key = get_chrome_key()
     iv = b' ' * 16
 
-    tmp_db = tempfile.mktemp(suffix='.db')
+    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp_file:
+        tmp_db = tmp_file.name
+
     try:
         shutil.copy(CHROME_LOGIN_DATA_PATH, tmp_db)
         conn = sqlite3.connect(tmp_db)
@@ -144,7 +146,10 @@ def sync_passwords():
             "lastUsed": existing_item.get('lastUsed', 0) if existing_item else 0
         })
 
-    with open(OUTPUT_JSON_PATH, 'w') as f:
+    # Write with strict permissions (0600 - owner read/write only)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    mode = 0o600
+    with os.fdopen(os.open(OUTPUT_JSON_PATH, flags, mode), 'w') as f:
         json.dump(vault, f, indent=2)
 
     print(f"✓ Successfully synced {len(vault)} passwords from Chrome into {OUTPUT_JSON_PATH}")

@@ -75,8 +75,37 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   }
 });
 
+// In-memory store for pending save prompts keyed by tabId to avoid sessionStorage leakage
+const pendingSavesByTab = new Map();
+
 // Message listener for content script and popup requests
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SET_PENDING_SAVE') {
+    if (sender && sender.tab && sender.tab.id) {
+      pendingSavesByTab.set(sender.tab.id, message.credData);
+      sendResponse({ success: true });
+    }
+    return true;
+  }
+
+  if (message.type === 'GET_PENDING_SAVE') {
+    if (sender && sender.tab && sender.tab.id) {
+      const data = pendingSavesByTab.get(sender.tab.id) || null;
+      sendResponse({ credData: data });
+    } else {
+      sendResponse({ credData: null });
+    }
+    return true;
+  }
+
+  if (message.type === 'CLEAR_PENDING_SAVE') {
+    if (sender && sender.tab && sender.tab.id) {
+      pendingSavesByTab.delete(sender.tab.id);
+      sendResponse({ success: true });
+    }
+    return true;
+  }
+
   if (message.type === 'REFRESH_BADGE') {
     if (sender && sender.tab && sender.tab.id && sender.tab.url) {
       updateTabBadge(sender.tab.id, sender.tab.url);
