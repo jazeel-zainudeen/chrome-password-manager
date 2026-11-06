@@ -936,6 +936,9 @@
       } else if (action === 'copy') {
         e.stopPropagation();
         if (cred) {
+          if (cred.id) {
+            OmniStorage.markLastUsed(cred.id);
+          }
           await copyToClipboard(cred.password);
           showToast('Password copied to clipboard!');
         }
@@ -1296,7 +1299,28 @@
       </div>
       <div class="pw-prompt-body">
         <div class="pw-prompt-site">${escapeHtml(cred.hostname)}</div>
-        <div class="pw-prompt-user">Username: <strong>${escapeHtml(cred.username || '(None)')}</strong></div>
+        <div class="pw-prompt-fields">
+          <div class="pw-prompt-field-group">
+            <label class="pw-prompt-label">Username</label>
+            <input type="text" class="pw-prompt-input" id="pw-prompt-username" value="${escapeHtml(cred.username || '')}" placeholder="Username or email" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="pw-prompt-field-group">
+            <label class="pw-prompt-label">Password</label>
+            <div class="pw-prompt-pass-wrap">
+              <input type="password" class="pw-prompt-input pw-prompt-input-pass" id="pw-prompt-password" value="${escapeHtml(cred.password || '')}" placeholder="Password" autocomplete="off" spellcheck="false" />
+              <button type="button" class="pw-prompt-toggle-pass" id="pw-prompt-eye" title="Show / hide password">
+                <svg class="pw-prompt-eye-open" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="pw-prompt-eye-closed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="pw-prompt-footer">
         <button type="button" class="pw-prompt-btn pw-btn-secondary" id="pw-dismiss-btn">Not Now</button>
@@ -1311,6 +1335,25 @@
       shadowRoot.appendChild(prompt);
     }
 
+    // Bind eye show/hide toggle in prompt
+    const eyeBtn = prompt.querySelector('#pw-prompt-eye');
+    const passInput = prompt.querySelector('#pw-prompt-password');
+    const userInput = prompt.querySelector('#pw-prompt-username');
+    if (eyeBtn && passInput) {
+      eyeBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const isCurrentlyPass = passInput.type === 'password';
+        passInput.type = isCurrentlyPass ? 'text' : 'password';
+        const openIcon = eyeBtn.querySelector('.pw-prompt-eye-open');
+        const closedIcon = eyeBtn.querySelector('.pw-prompt-eye-closed');
+        if (openIcon && closedIcon) {
+          openIcon.style.display = isCurrentlyPass ? 'none' : 'block';
+          closedIcon.style.display = isCurrentlyPass ? 'block' : 'none';
+        }
+      };
+    }
+
     requestAnimationFrame(() => {
       prompt.classList.add('pw-prompt-visible');
     });
@@ -1323,15 +1366,30 @@
 
     prompt.querySelector('#pw-dismiss-btn').onclick = dismiss;
     prompt.querySelector('#pw-save-btn').onclick = async () => {
-      await OmniStorage.saveCredential(cred);
+      const finalUsername = userInput ? userInput.value.trim() : cred.username;
+      const finalPassword = passInput ? passInput.value : cred.password;
+
+      if (!finalPassword) {
+        showToast('Password cannot be empty');
+        return;
+      }
+
+      const credToSave = {
+        ...cred,
+        username: finalUsername,
+        password: finalPassword,
+        userModified: true
+      };
+
+      await OmniStorage.saveCredential(credToSave);
       try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
 
       try {
         if (window.PasswordCredential && navigator.credentials) {
           const googleCred = new PasswordCredential({
-            id: cred.username || 'unknown',
-            password: cred.password,
-            name: cred.username
+            id: credToSave.username || 'unknown',
+            password: credToSave.password,
+            name: credToSave.username
           });
           await navigator.credentials.store(googleCred);
         }
@@ -1972,6 +2030,76 @@
       .pw-prompt-site {
         font-weight: 600;
         color: #e5e7eb;
+        margin-bottom: 8px;
+      }
+
+      .pw-prompt-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .pw-prompt-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .pw-prompt-label {
+        font-size: 11px;
+        color: #9ca3af;
+        font-weight: 500;
+      }
+
+      .pw-prompt-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: #1f2937;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #f3f4f6;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .pw-prompt-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+      }
+
+      .pw-prompt-pass-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .pw-prompt-input-pass {
+        padding-right: 32px;
+      }
+
+      .pw-prompt-toggle-pass {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+
+      .pw-prompt-toggle-pass:hover {
+        color: #f3f4f6;
+        background: rgba(255, 255, 255, 0.08);
       }
 
       .pw-prompt-footer {

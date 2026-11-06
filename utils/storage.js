@@ -304,14 +304,21 @@ const OmniStorage = (() => {
    * Updates lastUsed timestamp for a credential.
    */
   async function markLastUsed(id) {
-    const vault = await getAllCredentials();
-    const index = vault.findIndex((c) => c.id === id);
-    if (index >= 0) {
-      vault[index].lastUsed = Date.now();
-      await new Promise((resolve) => {
-        chrome.storage.local.set({ [STORAGE_KEY_VAULT]: vault }, resolve);
+    return new Promise((resolve) => {
+      chrome.storage.local.get([STORAGE_KEY_VAULT], (result) => {
+        let vault = Array.isArray(result[STORAGE_KEY_VAULT]) ? [...result[STORAGE_KEY_VAULT]] : [];
+        const index = vault.findIndex((c) => c.id === id);
+        if (index >= 0) {
+          vault[index].lastUsed = Date.now();
+          vault[index].userModified = true;
+          chrome.storage.local.set({ [STORAGE_KEY_VAULT]: vault }, () => {
+            resolve(vault[index]);
+          });
+        } else {
+          resolve(null);
+        }
       });
-    }
+    });
   }
 
   /**
@@ -404,13 +411,18 @@ const OmniStorage = (() => {
             const key = `${(item.origin || item.hostname || '').toLowerCase()}|${(item.username || '').toLowerCase()}`;
             if (seenMap.has(key)) {
               const idx = seenMap.get(key);
+              // Always preserve user modifications and recorded lastUsed times
+              const existingLastUsed = Math.max(vault[idx].lastUsed || 0, item.lastUsed || 0);
+              if (existingLastUsed > (vault[idx].lastUsed || 0)) {
+                vault[idx].lastUsed = existingLastUsed;
+              }
               // Do NOT overwrite user-modified credentials or newer passwords edited within the extension
               if (vault[idx].userModified) {
                 continue;
               }
               // Update if incoming item has a valid password
               if (item.password && (!vault[idx].password || vault[idx].password.includes('\u001d') || vault[idx].password.includes('\u020b') || vault[idx].password !== item.password)) {
-                vault[idx] = { ...item, lastUsed: vault[idx].lastUsed || 0, id: vault[idx].id || item.id };
+                vault[idx] = { ...item, lastUsed: existingLastUsed, id: vault[idx].id || item.id };
                 updated++;
               }
             } else {

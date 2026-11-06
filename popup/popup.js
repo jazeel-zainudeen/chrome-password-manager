@@ -239,6 +239,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnCopy = card.querySelector('.btn-copy-cred-pass');
     btnCopy.addEventListener('click', async () => {
       await navigator.clipboard.writeText(cred.password);
+      if (cred.id) {
+        OmniStorage.markLastUsed(cred.id);
+      }
       showToast('Password copied to clipboard!');
     });
 
@@ -248,6 +251,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnFill.addEventListener('click', async () => {
         if (!currentTab) return;
         try {
+          if (cred.id) {
+            await OmniStorage.markLastUsed(cred.id);
+          }
           await chrome.tabs.sendMessage(currentTab.id, {
             type: 'FILL_CREDENTIAL',
             credential: cred
