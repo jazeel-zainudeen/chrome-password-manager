@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Helper to close any active delete confirm popovers
   function closeAllDeleteConfirms() {
+    hideCustomTooltip();
+
     // Remove focus from buttons before removing them from DOM to prevent Chrome popup from closing
     if (document.activeElement && document.activeElement.closest('.delete-confirm-popover')) {
       document.activeElement.blur();
@@ -404,6 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnCancel.addEventListener('click', (evt) => {
         evt.stopPropagation();
         evt.preventDefault();
+        hideCustomTooltip();
         closeAllDeleteConfirms();
       });
 
@@ -837,20 +840,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     observer.observe(document.body, { childList: true, subtree: true });
 
     // Global event delegation for custom tooltip display
-    document.addEventListener('mouseenter', (e) => {
+    document.addEventListener('mouseover', (e) => {
       const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
       if (!target) return;
       showCustomTooltip(target);
     }, true);
 
-    document.addEventListener('mouseleave', (e) => {
+    document.addEventListener('mouseout', (e) => {
       const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
-      if (target) {
-        hideCustomTooltip();
+      if (!target) return;
+      const related = e.relatedTarget;
+      if (related && target.contains(related)) {
+        return;
       }
+      hideCustomTooltip();
     }, true);
 
     document.addEventListener('mousedown', () => {
+      hideCustomTooltip();
+    }, true);
+
+    document.addEventListener('click', () => {
       hideCustomTooltip();
     }, true);
 

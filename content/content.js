@@ -963,6 +963,7 @@
    * Closes any active delete confirmation popover in the dropdown.
    */
   function closeActiveContentDeleteConfirm() {
+    hideInPageTooltip();
     if (!activeDropdown) return;
     activeDropdown.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
       if (p._timeoutId) clearTimeout(p._timeoutId);
@@ -1163,6 +1164,7 @@
         cancelBtn.addEventListener('click', (evt) => {
           evt.stopPropagation();
           evt.preventDefault();
+          hideInPageTooltip();
           closeActiveContentDeleteConfirm();
         });
 
