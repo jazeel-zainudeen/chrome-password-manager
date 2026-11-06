@@ -6,7 +6,7 @@
 const OmniStorage = (() => {
   const STORAGE_KEY_VAULT = 'passwords_vault';
   const STORAGE_KEY_SETTINGS = 'passwords_settings';
-  const STORAGE_KEY_CHROME_SYNC = 'passwords_chrome_synced_v5';
+  const STORAGE_KEY_CHROME_SYNC = 'passwords_chrome_synced_v6';
 
   const DEFAULT_SETTINGS = {
     enableOnHttp: true,
@@ -188,11 +188,17 @@ const OmniStorage = (() => {
     // Sort matched by relevance score then by last used / updated
     matched.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
-      return (b.item.updatedAt || 0) - (a.item.updatedAt || 0);
+      const aTime = Math.max(a.item.lastUsed || 0, a.item.updatedAt || 0);
+      const bTime = Math.max(b.item.lastUsed || 0, b.item.updatedAt || 0);
+      return bTime - aTime;
     });
 
     const sortedMatched = matched.map((m) => m.item);
-    const sortedOthers = others.sort((a, b) => (b.updatedAt || 0) - (a.item?.updatedAt || 0));
+    const sortedOthers = others.sort((a, b) => {
+      const aTime = Math.max(a.lastUsed || 0, a.updatedAt || 0);
+      const bTime = Math.max(b.lastUsed || 0, b.updatedAt || 0);
+      return bTime - aTime;
+    });
 
     const seen = new Set();
     const dedupe = (list) => {

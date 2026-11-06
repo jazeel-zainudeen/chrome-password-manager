@@ -18,6 +18,7 @@
   let credentialsSummary = { matched: [], others: [], all: [] };
   let currentCredentials = [];
   let isPositioning = false;
+  let isDeletingConfirm = false;
   let inputObserver = null;
 
   // Initialize extension context
@@ -34,6 +35,7 @@
     await refreshCredentials();
     attachGlobalListeners();
     observeDomChanges();
+    checkPendingSavePrompt();
   }
 
   /**
@@ -43,9 +45,9 @@
     containerEl = document.createElement('div');
     containerEl.id = 'passwords-root';
     containerEl.style.cssText = 'all: initial; position: absolute; top: 0; left: 0; z-index: 2147483647; pointer-events: none;';
-    
+
     shadowRoot = containerEl.attachShadow({ mode: 'open' });
-    
+
     // Inject styles into shadow DOM
     const style = document.createElement('style');
     style.textContent = getShadowStyles();
@@ -74,7 +76,7 @@
       e.stopPropagation();
       if (currentTargetInput) {
         currentTargetInput.readOnly = false;
-        
+
         if (activeDropdown) {
           currentTargetInput.dataset.ignoreFocusOnce = 'true';
           currentTargetInput.focus();
@@ -130,7 +132,7 @@
       if (message.type === 'FILL_CREDENTIAL' && message.credential) {
         if (!currentTargetInput) {
           currentTargetInput = document.querySelector('input[type="password"]') ||
-                               document.querySelector('input[autocomplete*="username"], input[type="email"], input[name*="user"], input[id*="user"]');
+            document.querySelector('input[autocomplete*="username"], input[type="email"], input[name*="user"], input[id*="user"]');
         }
         if (currentTargetInput) {
           fillCredential(message.credential);
@@ -174,7 +176,7 @@
     if (role === 'search') return true;
 
     return /search|query|csrf|token|captcha|otp|code|auth\[server\]|auth\[db\]/i.test(name) ||
-           /search|query|csrf|token|captcha|otp|code/i.test(id);
+      /search|query|csrf|token|captcha|otp|code/i.test(id);
   }
 
   /**
@@ -191,7 +193,7 @@
     if (type === 'email') return true;
 
     return /user|login|email|account|usr|uname|identifier|auth\[user/i.test(name) ||
-           /user|login|email|account|usr|uname|identifier/i.test(id);
+      /user|login|email|account|usr|uname|identifier/i.test(id);
   }
 
   function isTargetInput(el) {
@@ -295,8 +297,8 @@
         return;
       }
 
-      // 1. Force autocomplete to new-password to stop Chrome's generic popup
-      input.setAttribute('autocomplete', 'new-password');
+      // 1. Force autocomplete to off / new-password to stop Chrome's generic popup
+      input.setAttribute('autocomplete', 'chrome-off');
       input.setAttribute('data-lpignore', 'true');
       input.setAttribute('data-1p-ignore', 'true');
       input.setAttribute('data-bwignore', 'true');
@@ -308,22 +310,29 @@
         input.form.setAttribute('autocomplete', 'off');
       }
 
-      // 2. Readonly shield: prevents Chrome from popping up native suggestion menu on click
+      // 2. Readonly shield: prevents Chrome from popping up native suggestion menu on click.
+      // Keeps input readonly initially; on user pointer/key interaction, unlocks immediately.
       if (document.activeElement !== input) {
         input.readOnly = true;
       }
 
       const releaseReadOnly = () => {
+        // Unlock field slightly after touch/mouse to let our dropdown trigger without Chrome's native autofill
         setTimeout(() => {
           if (input.dataset.passwordsOrigReadonly !== 'true') {
             input.readOnly = false;
           }
-        }, 20);
+        }, 150);
       };
 
       input.addEventListener('pointerdown', releaseReadOnly, { capture: true, passive: true });
       input.addEventListener('mousedown', releaseReadOnly, { capture: true, passive: true });
       input.addEventListener('touchstart', releaseReadOnly, { capture: true, passive: true });
+      input.addEventListener('keydown', () => {
+        if (input.dataset.passwordsOrigReadonly !== 'true') {
+          input.readOnly = false;
+        }
+      }, { capture: true, passive: true });
       input.addEventListener('focus', releaseReadOnly, { capture: true, passive: true });
 
       input.addEventListener('blur', () => {
@@ -371,13 +380,13 @@
     if (rect.width === 0 || rect.height === 0) return;
 
     const iconSize = 20;
-    
+
     const computedStyle = window.getComputedStyle(input);
     const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
-    
+
     // Base offset from the inner right edge
     let rightOffset = 8;
-    
+
     // Password fields often have native 'show password' eye icons on the right edge
     if (input.type === 'password') {
       rightOffset = 32;
@@ -404,7 +413,7 @@
       inputObserver.disconnect();
     }
     if (!window.IntersectionObserver) return;
-    
+
     inputObserver = new IntersectionObserver((entries) => {
       const entry = entries[0];
       // Hide if the input goes out of view, is removed, or is hidden via CSS
@@ -439,6 +448,11 @@
 
     await refreshCredentials();
 
+    if (!ignoreFocus && settings && settings.autoSuggestOnFocus !== false) {
+      if (!activeDropdown) {
+        showPickerDropdown(target);
+      }
+    }
   }
 
   /**
@@ -446,14 +460,19 @@
    */
   function onInputBlur(e) {
     const related = e.relatedTarget;
-    
+
     // If focus moves to our input, keep open
     if (related === currentTargetInput) {
       return;
     }
 
     // If focus moves within our dropdown, keep open
-    if (related && (related === containerEl || (shadowRoot && shadowRoot.contains(related)))) {
+    if (related && (related === containerEl || (related.nodeType && shadowRoot && shadowRoot.contains(related)))) {
+      return;
+    }
+
+    // If blur occurred because an internal button or popover was clicked/removed, keep dropdown open
+    if (activeDropdown && (isDeletingConfirm || (e.target && e.target.closest && (e.target.closest('.pw-delete-wrap') || e.target.closest('.pw-delete-confirm-popover'))))) {
       return;
     }
 
@@ -470,14 +489,19 @@
    * Handle document click.
    */
   function onDocumentClick(e) {
-    const path = e.composedPath();
-    const clickedInsideShadow = path.some(node => node === containerEl || (shadowRoot && shadowRoot.contains(node)));
-    const clickedInsideInput = path.some(node => node === currentTargetInput);
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+    const clickedInsideShadow = path.some(node => node && (node === containerEl || (node.nodeType && shadowRoot && shadowRoot.contains(node))));
+    const clickedInsideTargetInput = path.some(node => node === currentTargetInput);
+    const clickedInput = path.find(node => node && node.tagName === 'INPUT' && isTargetInput(node));
 
     if (!clickedInsideShadow) {
-      hidePickerDropdown();
-      if (!clickedInsideInput) {
+      if (!clickedInput && !clickedInsideTargetInput) {
+        hidePickerDropdown();
         hideFieldIcon();
+      } else if (clickedInput && settings && settings.autoSuggestOnFocus !== false) {
+        if (!activeDropdown) {
+          showPickerDropdown(clickedInput);
+        }
       }
     }
 
@@ -575,7 +599,7 @@
     if (activeDropdown && activeDropdown.parentNode) {
       activeDropdown.parentNode.removeChild(activeDropdown);
     }
-    
+
     dropdown.innerHTML = html;
     wrapper.appendChild(dropdown);
     activeDropdown = dropdown;
@@ -611,7 +635,7 @@
         html += `<div class="pw-group-title">Search Results (${all.length})</div>`;
         html += `<div class="pw-creds-list">`;
         all.forEach(cred => {
-          html += renderCredentialItemHtml(cred, true);
+          html += renderCredentialItemHtml(cred, true, q);
         });
         html += `</div>`;
       } else {
@@ -628,7 +652,7 @@
         html += `<div class="pw-group-title">Logins for ${escapeHtml(hostname)}${port}</div>`;
         html += `<div class="pw-creds-list">`;
         matched.forEach(cred => {
-          html += renderCredentialItemHtml(cred, false);
+          html += renderCredentialItemHtml(cred, false, '');
         });
         html += `</div>`;
       } else {
@@ -652,8 +676,41 @@
     return u.includes(q) || h.includes(q) || t.includes(q);
   }
 
-  function renderCredentialItemHtml(cred, showOriginBadge) {
+  function highlightMatch(text, query) {
+    const raw = text || '';
+    if (!query) return escapeHtml(raw);
+    const escapedText = escapeHtml(raw);
+    const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return escapedText.replace(regex, '<mark class="pw-search-highlight">$1</mark>');
+  }
+
+  function formatLastUsed(ts) {
+    if (!ts) return '';
+    const now = Date.now();
+    const diff = now - ts;
+    if (diff < 60 * 1000) return 'Used just now';
+    if (diff < 60 * 60 * 1000) {
+      const mins = Math.floor(diff / (60 * 1000));
+      return `Used ${mins}m ago`;
+    }
+    if (diff < 24 * 60 * 60 * 1000) {
+      const hrs = Math.floor(diff / (60 * 60 * 1000));
+      return `Used ${hrs}h ago`;
+    }
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    if (days === 1) return 'Used yesterday';
+    if (days < 30) return `Used ${days}d ago`;
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderCredentialItemHtml(cred, isSearchResult, query = '') {
     const firstLetter = (cred.username ? cred.username[0] : 'U').toUpperCase();
+    const lastUsedText = formatLastUsed(cred.lastUsed);
+    const highlightedUsername = highlightMatch(cred.username || 'No username', query);
+    const siteSource = cred.hostname || (cred.origin ? new URL(cred.origin).hostname : '');
+    const highlightedSource = highlightMatch(siteSource, query);
+
     return `
       <div class="pw-cred-item" data-id="${escapeHtml(cred.id)}" tabindex="0">
         <div class="pw-cred-avatar">
@@ -661,12 +718,38 @@
         </div>
         <div class="pw-cred-info">
           <div class="pw-cred-user-row">
-            <span class="pw-cred-user">${escapeHtml(cred.username || 'No username')}</span>
-            ${showOriginBadge && cred.hostname ? `<span class="pw-origin-tag" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
+            <span class="pw-cred-user">${highlightedUsername}</span>
+            ${!isSearchResult && cred.hostname && cred.origin !== window.location.origin ? `<span class="pw-origin-tag" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
           </div>
-          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}" title="Click to reveal">••••••••</div>
+          ${isSearchResult && siteSource ? `
+            <div class="pw-cred-source-row" title="${escapeHtml(cred.origin || siteSource)}">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span>${highlightedSource}</span>
+            </div>
+          ` : ''}
+          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}">
+            <svg class="pw-pass-key-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
+            </svg>
+            <span class="pw-pass-text"></span>
+          </div>
+          ${lastUsedText ? `<div class="pw-last-used-sub">${escapeHtml(lastUsedText)}</div>` : ''}
         </div>
         <div class="pw-cred-actions">
+          <button type="button" class="pw-btn-toggle-pass" data-action="toggle-pass" title="Show / hide password">
+            <svg class="pw-eye-open" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="pw-eye-closed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
           <button type="button" class="pw-btn-copy" data-action="copy" data-id="${escapeHtml(cred.id)}" title="Copy password">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -681,9 +764,6 @@
               </svg>
             </button>
           </div>
-          <button type="button" class="pw-btn-fill" data-action="fill" data-id="${escapeHtml(cred.id)}">
-            Fill
-          </button>
         </div>
       </div>
     `;
@@ -739,7 +819,11 @@
     if (!activeDropdown) return;
     activeDropdown.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
       if (p._timeoutId) clearTimeout(p._timeoutId);
-      p.remove();
+      if (p.parentNode) {
+        try {
+          p.parentNode.removeChild(p);
+        } catch (_) {}
+      }
     });
     activeDropdown.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
       b.classList.remove('active-delete');
@@ -788,37 +872,62 @@
     dropdown.addEventListener('click', async (e) => {
       // If an active delete confirm popover is open, clicking elsewhere inside dropdown dismisses it
       if (activeDropdown && activeDropdown.querySelector('.pw-delete-confirm-popover')) {
-        const isDeleteBtn = e.target.closest('.pw-btn-delete');
-        if (!isDeleteBtn) {
+        const isDeleteAction = e.target.closest('.pw-btn-delete, .pw-delete-confirm-popover');
+        if (!isDeleteAction) {
           e.stopPropagation();
           closeActiveContentDeleteConfirm();
           return;
         }
       }
 
-      // Toggle password reveal
-      const passEl = e.target.closest('.pw-cred-pass');
-      if (passEl) {
+      // Toggle password reveal via eye button
+      const togglePassBtn = e.target.closest('[data-action="toggle-pass"]');
+      if (togglePassBtn) {
         e.stopPropagation();
-        const rawPass = passEl.dataset.pass;
-        if (passEl.textContent.includes('•')) {
-          passEl.textContent = rawPass;
-          passEl.style.letterSpacing = 'normal';
-        } else {
-          passEl.textContent = '••••••••';
-          passEl.style.letterSpacing = '1px';
+        const credItem = togglePassBtn.closest('.pw-cred-item');
+        const passEl = credItem ? credItem.querySelector('.pw-cred-pass') : null;
+        if (passEl) {
+          const rawPass = passEl.dataset.pass || '';
+          const passTextEl = passEl.querySelector('.pw-pass-text');
+          const eyeOpen = togglePassBtn.querySelector('.pw-eye-open');
+          const eyeClosed = togglePassBtn.querySelector('.pw-eye-closed');
+          const isRevealed = passEl.classList.contains('pw-revealed');
+          if (!isRevealed) {
+            if (passTextEl) passTextEl.textContent = rawPass;
+            passEl.classList.add('pw-revealed');
+            togglePassBtn.classList.add('active');
+            if (eyeOpen) eyeOpen.style.display = 'none';
+            if (eyeClosed) eyeClosed.style.display = 'inline-block';
+          } else {
+            passEl.classList.remove('pw-revealed');
+            togglePassBtn.classList.remove('active');
+            if (eyeOpen) eyeOpen.style.display = 'inline-block';
+            if (eyeClosed) eyeClosed.style.display = 'none';
+            setTimeout(() => {
+              if (!passEl.classList.contains('pw-revealed') && passTextEl) {
+                passTextEl.textContent = '';
+              }
+            }, 200);
+          }
         }
         return;
+      }
+
+      // Clicking on the password text itself does nothing or fills as part of item click
+      const isCopyOrDelete = e.target.closest('.pw-btn-copy, .pw-btn-delete, .pw-delete-confirm-popover');
+      if (isCopyOrDelete) {
+        // Handled by copy/delete branches below
       }
 
       const target = e.target.closest('[data-action], .pw-cred-item');
       if (!target) return;
 
       const action = target.dataset.action;
-      const credId = target.dataset.id || target.closest('.pw-cred-item')?.dataset.id;
+      const credItem = target.closest('.pw-cred-item') || target;
+      const credId = target.dataset.id || credItem.dataset.id;
       const cred = currentCredentials.find(c => c.id === credId);
 
-      if (action === 'fill' || target.classList.contains('pw-cred-item')) {
+      if (action === 'fill' || target.classList.contains('pw-cred-item') || (!action && target.closest('.pw-cred-item'))) {
         if (cred) {
           fillCredential(cred);
           hidePickerDropdown();
@@ -867,20 +976,37 @@
         confirmBtn.addEventListener('click', async (evt) => {
           evt.stopPropagation();
           evt.preventDefault();
-          closeActiveContentDeleteConfirm();
-          await OmniStorage.deleteCredential(credId);
+          isDeletingConfirm = true;
+          const deletedBackup = cred ? { ...cred } : null;
           try {
-            if (window.PasswordCredential && navigator.credentials) {
-              await navigator.credentials.preventSilentAccess();
+            closeActiveContentDeleteConfirm();
+            await OmniStorage.deleteCredential(credId);
+            try {
+              if (window.PasswordCredential && navigator.credentials) {
+                await navigator.credentials.preventSilentAccess();
+              }
+            } catch (err) {
+              console.warn("Failed to prevent silent access via Credential Management API", err);
             }
-          } catch (err) {
-            console.warn("Failed to prevent silent access via Credential Management API", err);
-          }
-          showToast('Login deleted');
-          await refreshCredentials();
-          if (activeDropdown && activeDropdown.classList.contains('pw-visible')) {
-            const searchInput = activeDropdown.querySelector('#pw-search-filter');
-            renderDropdownAccounts(activeDropdown, searchInput ? searchInput.value : '');
+            showToast('Login deleted', deletedBackup ? {
+              label: 'Undo',
+              onClick: async () => {
+                await OmniStorage.saveCredential(deletedBackup);
+                await refreshCredentials();
+                if (activeDropdown && activeDropdown.classList.contains('pw-visible')) {
+                  const searchInput = activeDropdown.querySelector('#pw-search-filter');
+                  renderDropdownAccounts(activeDropdown, searchInput ? searchInput.value : '');
+                }
+                showToast('Login restored');
+              }
+            } : null);
+            await refreshCredentials();
+            if (activeDropdown && activeDropdown.classList.contains('pw-visible')) {
+              const searchInput = activeDropdown.querySelector('#pw-search-filter');
+              renderDropdownAccounts(activeDropdown, searchInput ? searchInput.value : '');
+            }
+          } finally {
+            isDeletingConfirm = false;
           }
         });
 
@@ -978,7 +1104,7 @@
     input.dataset.ignoreFocusOnce = 'true';
     input.readOnly = false;
     input.focus();
-    
+
     // React value setter hack for synthetic event dispatch
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
     if (nativeInputValueSetter) {
@@ -1056,20 +1182,82 @@
     if (!password) return;
 
     // Check if already in vault with same password
-    const alreadySaved = currentCredentials.some(
-      c => (c.username || '').toLowerCase() === (username || '').toLowerCase() && c.password === password
+    const matchingCred = currentCredentials.find(
+      c => (c.username || '').toLowerCase() === (username || '').toLowerCase()
     );
 
-    if (!alreadySaved) {
-      showSavePrompt({
-        origin: window.location.origin,
-        hostname: window.location.hostname,
-        protocol: window.location.protocol,
-        port: window.location.port,
-        username,
-        password
-      });
+    if (matchingCred && matchingCred.password === password) {
+      return; // Already up-to-date with identical password
     }
+
+    const isUpdate = !!matchingCred;
+
+    const credData = {
+      origin: window.location.origin,
+      hostname: window.location.hostname,
+      protocol: window.location.protocol,
+      port: window.location.port,
+      username,
+      password,
+      isUpdate,
+      timestamp: Date.now()
+    };
+
+    // Store in sessionStorage to survive page navigation/reload
+    try {
+      sessionStorage.setItem('pw_pending_save', JSON.stringify(credData));
+    } catch (e) {
+      // Ignore quota/access errors
+    }
+
+    showSavePrompt(credData);
+  }
+
+  /**
+   * Checks if there is a pending login save from a recent form submission or navigation.
+   */
+  async function checkPendingSavePrompt() {
+    // Only show pending save prompts in the top-level window, never inside embedded iframes
+    if (window.top !== window.self) return;
+    if (!settings || !settings.promptToSaveOnSubmit) return;
+    let pending = null;
+    try {
+      const raw = sessionStorage.getItem('pw_pending_save');
+      if (raw) {
+        pending = JSON.parse(raw);
+      }
+    } catch (e) {
+      return;
+    }
+
+    if (!pending || !pending.password) return;
+
+    // Only prompt within 60 seconds of submission on the same origin
+    const isRecent = Date.now() - (pending.timestamp || 0) < 60000;
+    const sameOrigin = pending.origin === window.location.origin;
+
+    if (!isRecent || !sameOrigin) {
+      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      return;
+    }
+
+    // Refresh credentials to see if this matches existing
+    await refreshCredentials();
+
+    const matchingCred = currentCredentials.find(
+      c => (c.username || '').toLowerCase() === (pending.username || '').toLowerCase()
+    );
+
+    if (matchingCred && matchingCred.password === pending.password) {
+      // Already matching and saved
+      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+      return;
+    }
+
+    pending.isUpdate = !!matchingCred;
+
+    // Show prompt on the destination page
+    showSavePrompt(pending);
   }
 
   function onFormSubmit(e) {
@@ -1085,9 +1273,13 @@
     if (existingPrompt) existingPrompt.remove();
 
     const isHttp = cred.protocol === 'http:';
+    const isUpdate = !!cred.isUpdate;
     const prompt = document.createElement('div');
     prompt.id = 'passwords-save-prompt';
     prompt.className = 'pw-save-prompt';
+
+    const titleText = isUpdate ? 'Update password in Password Manager?' : 'Save login to Password Manager?';
+    const buttonText = isUpdate ? 'Update' : 'Save';
 
     prompt.innerHTML = `
       <div class="pw-prompt-header">
@@ -1097,7 +1289,7 @@
               <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-4 4a5 5 0 1 1-7-7l4-4a5 5 0 0 1 7 7z"/>
             </svg>
           </div>
-          <span>Save login to Password Manager?</span>
+          <span>${titleText}</span>
         </div>
         ${isHttp ? '<span class="pw-prompt-badge">HTTP Insecure</span>' : ''}
       </div>
@@ -1107,7 +1299,7 @@
       </div>
       <div class="pw-prompt-footer">
         <button type="button" class="pw-prompt-btn pw-btn-secondary" id="pw-dismiss-btn">Not Now</button>
-        <button type="button" class="pw-prompt-btn pw-btn-primary" id="pw-save-btn">Save</button>
+        <button type="button" class="pw-prompt-btn pw-btn-primary" id="pw-save-btn">${buttonText}</button>
       </div>
     `;
 
@@ -1123,6 +1315,7 @@
     });
 
     const dismiss = () => {
+      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
       prompt.classList.remove('pw-prompt-visible');
       setTimeout(() => prompt.remove(), 250);
     };
@@ -1130,7 +1323,8 @@
     prompt.querySelector('#pw-dismiss-btn').onclick = dismiss;
     prompt.querySelector('#pw-save-btn').onclick = async () => {
       await OmniStorage.saveCredential(cred);
-      
+      try { sessionStorage.removeItem('pw_pending_save'); } catch (e) { }
+
       try {
         if (window.PasswordCredential && navigator.credentials) {
           const googleCred = new PasswordCredential({
@@ -1145,29 +1339,58 @@
       }
 
       await refreshCredentials();
-      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' }).catch(() => {});
+      chrome.runtime.sendMessage({ type: 'REFRESH_BADGE' }).catch(() => { });
       dismiss();
-      showToast('Login saved to Password Manager!');
+      showToast(isUpdate ? 'Password updated in Password Manager!' : 'Login saved to Password Manager!');
     };
 
     setTimeout(dismiss, 15000);
   }
 
   /**
-   * Shows a brief toast notification in the corner.
+   * Shows a brief toast notification in the corner, with optional undo/redo action.
    */
-  function showToast(msg) {
+  function showToast(msg, action) {
     if (!shadowRoot) return;
+    // Remove any existing toast
+    const existing = shadowRoot.querySelectorAll('.pw-toast');
+    existing.forEach(t => {
+      if (t._timeout) clearTimeout(t._timeout);
+      t.remove();
+    });
+
     const toast = document.createElement('div');
     toast.className = 'pw-toast';
-    toast.textContent = msg;
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'pw-toast-msg';
+    textSpan.textContent = msg;
+    toast.appendChild(textSpan);
+
+    if (action && action.label && typeof action.onClick === 'function') {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pw-toast-action-btn';
+      btn.textContent = action.label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (toast._timeout) clearTimeout(toast._timeout);
+        toast.classList.remove('pw-toast-visible');
+        setTimeout(() => toast.remove(), 250);
+        action.onClick();
+      });
+      toast.appendChild(btn);
+    }
+
     shadowRoot.appendChild(toast);
 
     requestAnimationFrame(() => toast.classList.add('pw-toast-visible'));
-    setTimeout(() => {
+    const duration = action ? 5000 : 2500;
+    toast._timeout = setTimeout(() => {
       toast.classList.remove('pw-toast-visible');
       setTimeout(() => toast.remove(), 250);
-    }, 2500);
+    }, duration);
   }
 
   function escapeHtml(str) {
@@ -1351,15 +1574,100 @@
         white-space: nowrap;
       }
 
-      .pw-cred-pass {
+      .pw-cred-source-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
         color: #9ca3af;
-        font-size: 11px;
-        letter-spacing: 1px;
-        cursor: pointer;
+        margin-top: 2px;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .pw-cred-pass:hover {
-        color: #e5e7eb;
+      .pw-cred-source-row svg {
+        flex-shrink: 0;
+        color: #6b7280;
+      }
+
+      .pw-search-highlight {
+        background: rgba(245, 158, 11, 0.28);
+        color: #fbbf24;
+        font-weight: 600;
+        border-radius: 2px;
+        padding: 0 1px;
+      }
+
+      .pw-cred-pass {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        color: #d1d5db;
+        user-select: text;
+        max-height: 0;
+        opacity: 0;
+        margin-top: 0;
+        transform: translateY(-2px);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        transition: max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.18s ease,
+                    transform 0.18s ease,
+                    margin-top 0.18s ease;
+      }
+
+      .pw-pass-key-icon {
+        color: #818cf8;
+        flex-shrink: 0;
+        opacity: 0.85;
+      }
+
+      .pw-pass-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .pw-cred-pass.pw-revealed {
+        max-height: 20px;
+        opacity: 1;
+        margin-top: 2px;
+        transform: translateY(0);
+      }
+
+      .pw-last-used-sub {
+        font-size: 10px;
+        color: #818cf8;
+        margin-top: 2px;
+        line-height: 1.2;
+        font-weight: 500;
+      }
+
+      .pw-btn-toggle-pass {
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s, background 0.15s, transform 0.15s;
+      }
+
+      .pw-btn-toggle-pass:hover {
+        color: #f3f4f6;
+        background: #374151;
+      }
+
+      .pw-btn-toggle-pass.active {
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.15);
       }
 
       .pw-cred-actions {
@@ -1705,22 +2013,49 @@
         position: fixed;
         bottom: 24px;
         right: 24px;
-        background: #1f2937;
+        background: #111827;
         color: #f3f4f6;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 8px 14px;
         border-radius: 8px;
         font-size: 12.5px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         opacity: 0;
         transform: translateY(8px);
         transition: opacity 0.2s ease, transform 0.2s ease;
         z-index: 2147483647;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto;
       }
 
       .pw-toast.pw-toast-visible {
         opacity: 1;
         transform: translateY(0);
+      }
+
+      .pw-toast-msg {
+        line-height: 1.3;
+      }
+
+      .pw-toast-action-btn {
+        background: #374151;
+        color: #818cf8;
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        line-height: 1.2;
+      }
+
+      .pw-toast-action-btn:hover {
+        background: #4f46e5;
+        color: #ffffff;
+        border-color: #4f46e5;
       }
     `;
   }

@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         evt.stopPropagation();
         evt.preventDefault();
         closeAllDeleteConfirms();
+        const deletedBackup = { ...cred };
         await OmniStorage.deleteCredential(cred.id);
         
         if (currentTab && currentUrlInfo?.origin === cred.origin) {
@@ -315,7 +316,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
 
-        showToast('Login deleted');
+        showToast('Login deleted', {
+          label: 'Undo',
+          onClick: async () => {
+            await OmniStorage.saveCredential(deletedBackup);
+            renderCurrentSiteCredentials();
+            renderVaultList();
+            updateTabBadge();
+            showToast('Login restored');
+          }
+        });
         renderCurrentSiteCredentials();
         renderVaultList();
         updateTabBadge();
@@ -605,13 +615,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Toast Helper
   let toastTimer = null;
-  function showToast(msg) {
+  function showToast(msg, action) {
     if (toastTimer) clearTimeout(toastTimer);
-    toastEl.textContent = msg;
+    toastEl.innerHTML = '';
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = msg;
+    toastEl.appendChild(textSpan);
+
+    if (action && action.label && typeof action.onClick === 'function') {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-toast-action';
+      btn.textContent = action.label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (toastTimer) clearTimeout(toastTimer);
+        toastEl.classList.remove('show');
+        action.onClick();
+      });
+      toastEl.appendChild(btn);
+    }
+
     toastEl.classList.add('show');
+    const duration = action ? 5000 : 2000;
     toastTimer = setTimeout(() => {
       toastEl.classList.remove('show');
-    }, 2000);
+    }, duration);
   }
 
   function updateTabBadge() {

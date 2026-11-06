@@ -12,6 +12,8 @@ import hashlib
 import json
 import os
 import sys
+import time
+import argparse
 sys.dont_write_bytecode = True
 from urllib.parse import urlparse
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -132,5 +134,36 @@ def sync_passwords():
     print(f"  - HTTPS logins: {len(vault) - insecure_count}")
     return True
 
+def watch_passwords(interval=5):
+    """Continuously monitors Chrome's Login Data file and syncs on changes."""
+    print(f"👀 Watching Chrome Login Data ({CHROME_LOGIN_DATA_PATH}) every {interval}s...")
+    last_mtime = 0
+    last_size = 0
+    while True:
+        try:
+            if os.path.exists(CHROME_LOGIN_DATA_PATH):
+                stat = os.stat(CHROME_LOGIN_DATA_PATH)
+                if stat.st_mtime != last_mtime or stat.st_size != last_size:
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Detected change in Chrome Login Data. Syncing...")
+                    if sync_passwords():
+                        last_mtime = stat.st_mtime
+                        last_size = stat.st_size
+            time.sleep(interval)
+        except KeyboardInterrupt:
+            print("\nStopped watching.")
+            break
+        except Exception as e:
+            print(f"Watch error: {e}")
+            time.sleep(interval)
+
 if __name__ == '__main__':
-    sync_passwords()
+    parser = argparse.ArgumentParser(description="Sync passwords from Chrome to Password Manager extension")
+    parser.add_argument('--watch', action='store_true', help="Watch Chrome Login Data for changes and autosync")
+    parser.add_argument('--interval', type=int, default=5, help="Polling interval in seconds for --watch (default: 5)")
+    args = parser.parse_args()
+
+    if args.watch:
+        sync_passwords()
+        watch_passwords(args.interval)
+    else:
+        sync_passwords()
