@@ -655,7 +655,7 @@
     }
 
     // If blur occurred because an internal button or popover was clicked/removed, keep dropdown open
-    if (activeDropdown && (isDeletingConfirm || (e.target && e.target.closest && (e.target.closest('.pw-delete-wrap') || e.target.closest('.pw-delete-confirm-popover'))))) {
+    if (activeDropdown && (isDeletingConfirm || (e.target && e.target.closest && (e.target.closest('.pw-delete-wrap') || e.target.closest('.pw-delete-confirm-popover') || e.target.closest('.passwords-dropdown'))))) {
       return;
     }
 
@@ -1102,10 +1102,13 @@
         return;
       }
 
-      // Clicking on the password text itself does nothing or fills as part of item click
-      const isCopyOrDelete = e.target.closest('.pw-btn-copy, .pw-btn-delete, .pw-delete-confirm-popover');
+      // Clicking on copy, delete, or popovers should never bubble or trigger item autofill
+      const isCopyOrDelete = e.target.closest('.pw-btn-copy, .pw-btn-delete, .pw-delete-confirm-popover, .pw-delete-wrap');
       if (isCopyOrDelete) {
-        // Handled by copy/delete branches below
+        // If not a delete trigger or copy button, ignore
+        if (!e.target.closest('.pw-btn-copy, .pw-btn-delete')) {
+          return;
+        }
       }
 
       const target = e.target.closest('[data-action], .pw-cred-item');
@@ -1206,7 +1209,14 @@
           evt.stopPropagation();
           evt.preventDefault();
           hideInPageTooltip(true);
-          closeActiveContentDeleteConfirm(dropdown);
+          isDeletingConfirm = true;
+          try {
+            closeActiveContentDeleteConfirm(dropdown);
+          } finally {
+            setTimeout(() => {
+              isDeletingConfirm = false;
+            }, 100);
+          }
         });
 
         deleteWrap.appendChild(pop);
