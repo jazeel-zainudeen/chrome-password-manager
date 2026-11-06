@@ -219,14 +219,38 @@
 
     // Attach tooltip listeners inside shadowRoot
     if (shadowRoot) {
-      shadowRoot.addEventListener('mouseenter', (e) => {
-        const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
-        if (target) showInPageTooltip(target);
+      shadowRoot.addEventListener('mouseover', (e) => {
+        const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+        let target = null;
+        for (const node of path) {
+          if (node && node.nodeType === 1 && node.getAttribute && node.getAttribute('data-tooltip')) {
+            target = node;
+            break;
+          }
+        }
+        if (!target && e.target && e.target.closest) {
+          target = e.target.closest('[data-tooltip]');
+        }
+        if (target) {
+          showInPageTooltip(target);
+        }
       }, true);
 
-      shadowRoot.addEventListener('mouseleave', (e) => {
-        const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
-        if (target) hideInPageTooltip();
+      shadowRoot.addEventListener('mouseout', (e) => {
+        const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+        const related = e.relatedTarget;
+        // Check if moving to an element within the same data-tooltip container
+        let currentTooltipTarget = null;
+        for (const node of path) {
+          if (node && node.nodeType === 1 && node.getAttribute && node.getAttribute('data-tooltip')) {
+            currentTooltipTarget = node;
+            break;
+          }
+        }
+        if (currentTooltipTarget && related && currentTooltipTarget.contains(related)) {
+          return;
+        }
+        hideInPageTooltip();
       }, true);
 
       shadowRoot.addEventListener('mousedown', () => {
