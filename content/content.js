@@ -718,7 +718,7 @@
         </div>
         <div class="pw-cred-info">
           <div class="pw-cred-user-row">
-            <span class="pw-cred-user">${highlightedUsername}</span>
+            <span class="pw-cred-user" title="${escapeHtml(cred.username || 'No username')}">${highlightedUsername}</span>
             ${!isSearchResult && cred.hostname && cred.origin !== window.location.origin ? `<span class="pw-origin-tag" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
           </div>
           ${isSearchResult && siteSource ? `
@@ -731,7 +731,7 @@
               <span>${highlightedSource}</span>
             </div>
           ` : ''}
-          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}">
+          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}" title="${escapeHtml(cred.password)}">
             <svg class="pw-pass-key-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>

@@ -254,11 +254,12 @@ const OmniStorage = (() => {
       notes: cred.notes || '',
       createdAt: cred.createdAt || now,
       updatedAt: now,
-      lastUsed: cred.lastUsed || 0
+      lastUsed: cred.lastUsed !== undefined ? cred.lastUsed : (existingIndex >= 0 ? vault[existingIndex].lastUsed || 0 : 0),
+      userModified: true
     };
 
     if (existingIndex >= 0) {
-      vault[existingIndex] = { ...vault[existingIndex], ...credentialData, updatedAt: now };
+      vault[existingIndex] = { ...vault[existingIndex], ...credentialData, updatedAt: now, userModified: true };
     } else {
       // Check if duplicate for same origin + username exists
       const duplicateIndex = vault.findIndex(
@@ -271,7 +272,8 @@ const OmniStorage = (() => {
           ...vault[duplicateIndex],
           ...credentialData,
           id: vault[duplicateIndex].id,
-          updatedAt: now
+          updatedAt: now,
+          userModified: true
         };
       } else {
         vault.unshift(credentialData);
@@ -402,9 +404,13 @@ const OmniStorage = (() => {
             const key = `${(item.origin || item.hostname || '').toLowerCase()}|${(item.username || '').toLowerCase()}`;
             if (seenMap.has(key)) {
               const idx = seenMap.get(key);
+              // Do NOT overwrite user-modified credentials or newer passwords edited within the extension
+              if (vault[idx].userModified) {
+                continue;
+              }
               // Update if incoming item has a valid password
               if (item.password && (!vault[idx].password || vault[idx].password.includes('\u001d') || vault[idx].password.includes('\u020b') || vault[idx].password !== item.password)) {
-                vault[idx] = { ...vault[idx], ...item };
+                vault[idx] = { ...item, lastUsed: vault[idx].lastUsed || 0, id: vault[idx].id || item.id };
                 updated++;
               }
             } else {
