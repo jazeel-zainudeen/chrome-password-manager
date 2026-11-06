@@ -2,4 +2,6 @@ __pycache__/
 *.pyc
 .DS_Store
 .gitnexus/
+chrome_passwords.json
+*.db
 
