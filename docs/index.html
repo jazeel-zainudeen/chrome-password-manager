@@ -170,6 +170,357 @@
       margin-bottom: 60px;
     }
 
+    /* Mockup Showcase */
+    .mockup-container {
+      max-width: 960px;
+      margin: 0 auto 50px;
+      perspective: 1000px;
+    }
+    .browser-frame {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.2);
+    }
+    .browser-bar {
+      background: #1e293b;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .browser-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.green { background: #10b981; }
+    .browser-url-bar {
+      flex: 1;
+      background: #0b1329;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+    .browser-url-bar .insecure-tag {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .browser-url-bar .url-text {
+      color: #cbd5e1;
+    }
+    .browser-ext-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .browser-ext-icon img {
+      width: 16px;
+      height: 16px;
+    }
+
+    .browser-content {
+      background: #090e1a;
+      padding: 40px;
+      min-height: 440px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Simulated In-Page Form */
+    .mock-page-form {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px 28px;
+      width: 380px;
+      position: relative;
+    }
+    .mock-page-form h4 {
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+      color: #f3f4f6;
+    }
+    .mock-page-form p {
+      font-size: 0.82rem;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+    .mock-field {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .mock-field label {
+      display: block;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .mock-input-wrap {
+      position: relative;
+    }
+    .mock-input {
+      width: 100%;
+      background: #1f2937;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #f9fafb;
+      font-size: 0.9rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .mock-input.active-field {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    .mock-inline-key {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Floating In-Page Picker Mockup */
+    .mock-floating-picker {
+      position: absolute;
+      top: 195px;
+      left: 28px;
+      width: 324px;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 14px 40px -6px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.25);
+      z-index: 20;
+      overflow: hidden;
+      animation: floatPulse 4s ease-in-out infinite;
+    }
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    .picker-top {
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .picker-site-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .picker-badge {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .picker-search {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .picker-search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .picker-item {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(99, 102, 241, 0.08);
+      cursor: pointer;
+    }
+    .picker-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .picker-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #4f46e5;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .picker-user {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .picker-pass {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      letter-spacing: 1px;
+    }
+    .picker-fill-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Floating Popup Mockup (Right Side) */
+    .mock-popup-preview {
+      width: 320px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.15);
+    }
+    .mock-popup-header {
+      background: #1e293b;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .mock-popup-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .mock-popup-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .mock-popup-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .mock-popup-tab.active {
+      color: #818cf8;
+      border-bottom: 2px solid #818cf8;
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .mock-popup-body {
+      padding: 14px;
+    }
+    .mock-vault-card {
+      background: #1a2234;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .mock-card-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .mock-card-domain {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+    .mock-card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    @media (max-width: 820px) {
+      .browser-content {
+        flex-direction: column;
+        align-items: center;
+        padding: 24px 16px;
+      }
+      .mock-page-form, .mock-popup-preview {
+        width: 100%;
+        max-width: 380px;
+      }
+      .mock-floating-picker {
+        position: static;
+        width: 100%;
+        margin-top: 16px;
+      }
+    }
+
     /* Feature Grid */
     .grid {
       display: grid;
@@ -353,6 +704,113 @@
       <div class="hero-actions">
         <a href="#install" class="btn">Get Started & Quickstart</a>
         <a href="wiki/index.html" class="btn btn-secondary">Explore The Wiki</a>
+      </div>
+
+      <!-- Realistic Browser & Extension Mockup -->
+      <div class="mockup-container">
+        <div class="browser-frame">
+          <!-- Window Header Bar -->
+          <div class="browser-bar">
+            <div class="browser-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="browser-url-bar">
+              <span class="insecure-tag">⚠ Not Secure</span>
+              <span class="url-text">http://localhost:8899/index.html</span>
+            </div>
+            <div class="browser-ext-icon" title="Chrome Password Manager Active">
+              <img src="assets/icons/icon16.png" alt="Ext">
+            </div>
+          </div>
+
+          <!-- Browser Window Body -->
+          <div class="browser-content">
+            <!-- Simulated In-Page Login Form -->
+            <div class="mock-page-form">
+              <h4>Internal Admin Sign In</h4>
+              <p>Staging Dev Console &bull; HTTP Origin</p>
+
+              <div class="mock-field">
+                <label>Username</label>
+                <div class="mock-input-wrap">
+                  <input type="text" class="mock-input active-field" value="admin" readonly>
+                  <div class="mock-inline-key" title="Password Manager Trigger">🔑</div>
+                </div>
+              </div>
+
+              <div class="mock-field">
+                <label>Password</label>
+                <div class="mock-input-wrap">
+                  <input type="password" class="mock-input" value="••••••••••••" readonly>
+                </div>
+              </div>
+
+              <!-- Floating In-Page Picker Mockup -->
+              <div class="mock-floating-picker">
+                <div class="picker-top">
+                  <span class="picker-site-tag">⚡ localhost:8899</span>
+                  <span class="picker-badge">HTTP Unlocked</span>
+                </div>
+                <div class="picker-search">
+                  <input type="text" class="picker-search-input" placeholder="Search or choose account..." value="" readonly>
+                </div>
+                <div class="picker-item">
+                  <div class="picker-item-left">
+                    <div class="picker-avatar">A</div>
+                    <div>
+                      <div class="picker-user">admin</div>
+                      <div class="picker-pass">•••••••••••• &bull; Used just now</div>
+                    </div>
+                  </div>
+                  <button type="button" class="picker-fill-btn">Fill</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated Extension Popup Window Preview -->
+            <div class="mock-popup-preview">
+              <div class="mock-popup-header">
+                <div class="mock-popup-title">
+                  <img src="assets/icons/icon16.png" width="16" height="16" alt="Logo">
+                  <span>Password Manager</span>
+                </div>
+                <span class="picker-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8;">v1.0.0</span>
+              </div>
+              <div class="mock-popup-tabs">
+                <div class="mock-popup-tab active">Active Site (1)</div>
+                <div class="mock-popup-tab">All Vault (12)</div>
+                <div class="mock-popup-tab">Settings</div>
+              </div>
+              <div class="mock-popup-body">
+                <div class="mock-vault-card">
+                  <div class="mock-card-head">
+                    <span>CURRENT SITE</span>
+                    <span style="color: #f59e0b; font-weight: 700;">INSECURE HTTP</span>
+                  </div>
+                  <div class="mock-card-domain">localhost:8899</div>
+                  <div class="mock-card-actions">
+                    <span>👤 admin</span>
+                    <span style="color: #10b981; font-weight: 600;">✓ Ready to autofill</span>
+                  </div>
+                </div>
+
+                <div class="mock-vault-card" style="opacity: 0.7;">
+                  <div class="mock-card-head">
+                    <span>SAVED SITE</span>
+                    <span style="color: #10b981; font-weight: 700;">HTTPS</span>
+                  </div>
+                  <div class="mock-card-domain">github.com</div>
+                  <div class="mock-card-actions">
+                    <span>👤 developer@work</span>
+                    <span>••••••••</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
