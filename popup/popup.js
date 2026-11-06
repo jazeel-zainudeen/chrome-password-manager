@@ -198,24 +198,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="cred-user-wrap">
           <div class="cred-avatar">${firstLetter}</div>
           <div class="cred-user-meta">
-            <div class="cred-username" title="${escapeHtml(cred.username)}">${escapeHtml(cred.username || 'No username')}</div>
+            <div class="cred-username" data-tooltip="${escapeHtml(cred.username)}">${escapeHtml(cred.username || 'No username')}</div>
             <div class="cred-password-mask" data-pass="${escapeHtml(cred.password)}">••••••••••••</div>
           </div>
         </div>
         <div class="cred-card-actions">
-          <button class="btn-icon btn-toggle-pass" title="Show password">
+          <button class="btn-icon btn-toggle-pass" data-tooltip="Show password">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button class="btn-icon btn-copy-cred-pass" title="Copy password">
+          <button class="btn-icon btn-copy-cred-pass" data-tooltip="Copy password">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
-          <button class="btn-icon btn-edit-cred" title="Edit login">
+          <button class="btn-icon btn-edit-cred" data-tooltip="Edit login">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </button>
           ` : ''}
           <div class="delete-action-wrap">
-            <button class="btn-icon btn-delete-cred" title="Delete login" style="color: #ef4444;">
+            <button class="btn-icon btn-delete-cred" data-tooltip="Delete login" style="color: #ef4444;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
       <div class="cred-card-footer">
-        <span class="cred-origin-badge" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname || 'Unknown')}</span>
+        <span class="cred-origin-badge" data-tooltip="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname || 'Unknown')}</span>
         <span class="security-tag ${isInsecure ? 'insecure' : 'secure'}" style="font-size: 9px; padding: 1px 6px;">
           ${isInsecure ? 'HTTP' : 'HTTPS'}
         </span>
@@ -263,7 +263,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
       `;
-      btnToggle.title = isRevealed ? 'Hide password' : 'Show password';
+      btnToggle.setAttribute('data-tooltip', isRevealed ? 'Hide password' : 'Show password');
+      btnToggle.removeAttribute('title');
     });
 
     // Event: Copy password
@@ -549,11 +550,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         </svg>
       ` : `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
       `;
-      btnToggleEditPass.title = isPass ? 'Hide password' : 'Show password';
+      btnToggleEditPass.setAttribute('data-tooltip', isPass ? 'Hide password' : 'Show password');
+      btnToggleEditPass.removeAttribute('title');
     });
   }
 
@@ -765,6 +767,129 @@ document.addEventListener('DOMContentLoaded', async () => {
     reader.readAsText(file);
   });
 
+  // Elegant Tooltip Controller
+  let activeTooltipEl = null;
+  let tooltipTimeout = null;
+
+  function initTooltips() {
+    // Automatically convert any existing or dynamically created [title] attributes to [data-tooltip]
+    // so native tooltips are completely suppressed
+    const convertTitles = (root = document) => {
+      const titled = root.querySelectorAll('[title]');
+      titled.forEach(el => {
+        const text = el.getAttribute('title');
+        if (text && text.trim()) {
+          el.setAttribute('data-tooltip', text.trim());
+        }
+        el.removeAttribute('title');
+      });
+    };
+
+    convertTitles();
+
+    // Observe dynamic elements in popup DOM
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes) {
+          if (node.nodeType === 1) {
+            if (node.hasAttribute('title')) {
+              const text = node.getAttribute('title');
+              if (text && text.trim()) node.setAttribute('data-tooltip', text.trim());
+              node.removeAttribute('title');
+            }
+            if (node.querySelectorAll) {
+              node.querySelectorAll('[title]').forEach(el => {
+                const text = el.getAttribute('title');
+                if (text && text.trim()) el.setAttribute('data-tooltip', text.trim());
+                el.removeAttribute('title');
+              });
+            }
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Global event delegation for custom tooltip display
+    document.addEventListener('mouseenter', (e) => {
+      const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
+      if (!target) return;
+      showCustomTooltip(target);
+    }, true);
+
+    document.addEventListener('mouseleave', (e) => {
+      const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
+      if (target) {
+        hideCustomTooltip();
+      }
+    }, true);
+
+    document.addEventListener('mousedown', () => {
+      hideCustomTooltip();
+    }, true);
+
+    window.addEventListener('scroll', () => {
+      hideCustomTooltip();
+    }, { passive: true });
+  }
+
+  function showCustomTooltip(target) {
+    hideCustomTooltip();
+
+    const text = target.getAttribute('data-tooltip');
+    if (!text || !text.trim()) return;
+
+    // Create tooltip element
+    activeTooltipEl = document.createElement('div');
+    activeTooltipEl.className = 'custom-tooltip';
+    activeTooltipEl.textContent = text;
+    document.body.appendChild(activeTooltipEl);
+
+    // Position tooltip nicely relative to target
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = activeTooltipEl.getBoundingClientRect();
+
+    let top = targetRect.top - tooltipRect.height - 6;
+    let left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+
+    // Flip below if not enough room above
+    if (top < 4) {
+      top = targetRect.bottom + 6;
+      activeTooltipEl.classList.add('tooltip-bottom');
+    }
+
+    // Keep within horizontal bounds of popup (width: ~360px)
+    if (left < 6) {
+      left = 6;
+    } else if (left + tooltipRect.width > window.innerWidth - 6) {
+      left = window.innerWidth - tooltipRect.width - 6;
+    }
+
+    activeTooltipEl.style.top = `${Math.round(top)}px`;
+    activeTooltipEl.style.left = `${Math.round(left)}px`;
+
+    // Trigger smooth fade-in
+    requestAnimationFrame(() => {
+      if (activeTooltipEl) {
+        activeTooltipEl.classList.add('tooltip-visible');
+      }
+    });
+  }
+
+  function hideCustomTooltip() {
+    if (tooltipTimeout) {
+      clearTimeout(tooltipTimeout);
+      tooltipTimeout = null;
+    }
+    if (activeTooltipEl) {
+      const el = activeTooltipEl;
+      activeTooltipEl = null;
+      el.classList.remove('tooltip-visible');
+      setTimeout(() => el.remove(), 120);
+    }
+  }
+
   // Toast Helper
   let toastTimer = null;
   function showToast(msg, action) {
@@ -811,6 +936,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  // Initialize Custom Tooltips
+  initTooltips();
 
   // Initialize
   await initActiveTab();

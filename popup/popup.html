@@ -95,8 +95,8 @@
           <label>Password</label>
           <div class="password-input-wrap">
             <input type="password" id="input-password" placeholder="Password" required autocomplete="off">
-            <button type="button" class="btn-icon" id="btn-toggle-input-pass" title="Toggle visibility">👁</button>
-            <button type="button" class="btn-icon" id="btn-fill-generated" title="Insert generated password">⚡</button>
+            <button type="button" class="btn-icon" id="btn-toggle-input-pass" data-tooltip="Toggle visibility">👁</button>
+            <button type="button" class="btn-icon" id="btn-fill-generated" data-tooltip="Insert generated password">⚡</button>
           </div>
         </div>
         <div class="form-actions">
@@ -115,7 +115,7 @@
     <section class="tab-content" id="tab-vault">
       <div class="vault-top-actions">
         <span class="vault-title">Saved Logins</span>
-        <button type="button" class="btn-xs btn-primary" id="btn-sync-chrome-vault" title="Sync all decrypted Chrome passwords into Password Manager">
+        <button type="button" class="btn-xs btn-primary" id="btn-sync-chrome-vault" data-tooltip="Sync all decrypted Chrome passwords into Password Manager">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -149,7 +149,7 @@
       <div class="generator-card">
         <div class="password-display-box">
           <div class="password-display" id="gen-result">••••••••••••••••</div>
-          <button class="btn-icon copy-large" id="btn-copy-generated" title="Copy to clipboard">
+          <button class="btn-icon copy-large" id="btn-copy-generated" data-tooltip="Copy to clipboard">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -254,7 +254,7 @@
         </button>
 
         <div class="backup-actions" style="margin-bottom: 8px;">
-          <label class="btn btn-secondary file-upload-btn" title="Import CSV exported from chrome://password-manager">
+          <label class="btn btn-secondary file-upload-btn" data-tooltip="Import CSV exported from chrome://password-manager">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
@@ -290,7 +290,7 @@
       <div class="edit-modal-card">
         <div class="edit-modal-header">
           <span class="edit-modal-title">Edit Login</span>
-          <button type="button" class="btn-icon" id="btn-close-edit-modal" title="Close">✕</button>
+          <button type="button" class="btn-icon" id="btn-close-edit-modal" data-tooltip="Close">✕</button>
         </div>
         <form id="form-edit-cred" class="edit-modal-form">
           <input type="hidden" id="edit-cred-id">
@@ -307,13 +307,13 @@
             <label>Password</label>
             <div class="password-input-wrap">
               <input type="password" id="edit-cred-password" placeholder="Password" required autocomplete="off" spellcheck="false">
-              <button type="button" class="btn-icon" id="btn-toggle-edit-pass" title="Toggle visibility">
+              <button type="button" class="btn-icon" id="btn-toggle-edit-pass" data-tooltip="Toggle visibility">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <button type="button" class="btn-icon" id="btn-gen-edit-pass" title="Generate strong password">⚡</button>
+              <button type="button" class="btn-icon" id="btn-gen-edit-pass" data-tooltip="Generate strong password">⚡</button>
             </div>
           </div>
           <div class="form-actions">

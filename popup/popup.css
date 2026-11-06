@@ -987,3 +987,35 @@ body {
   from { transform: translateY(8px) scale(0.98); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
 }
+
+/* Custom Tooltip Styling */
+.custom-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 14px -1px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(3px) scale(0.96);
+  transition: opacity 0.14s cubic-bezier(0.16, 1, 0.3, 1), transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-tooltip.tooltip-bottom {
+  transform: translateY(-3px) scale(0.96);
+}
+
+.custom-tooltip.tooltip-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}

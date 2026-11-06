@@ -104,7 +104,7 @@
     fieldIcon.id = 'passwords-field-icon';
     fieldIcon.className = 'pw-field-icon';
     fieldIcon.setAttribute('type', 'button');
-    fieldIcon.setAttribute('title', 'Password Manager: Show saved logins');
+    fieldIcon.setAttribute('data-tooltip', 'Password Manager: Show saved logins');
     fieldIcon.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-3 7-3 3 0 5 2 7 3a1 1 0 0 1 1 1v7z"/>
@@ -167,6 +167,72 @@
 
     window.addEventListener('resize', repositionActiveDropdown, { passive: true });
     window.addEventListener('scroll', repositionActiveDropdown, { passive: true });
+
+    // Custom Tooltip Controller inside Shadow DOM / Page
+    let activeInPageTooltipEl = null;
+
+    function showInPageTooltip(target) {
+      hideInPageTooltip();
+      const text = target.getAttribute('data-tooltip');
+      if (!text || !text.trim() || !shadowRoot) return;
+
+      activeInPageTooltipEl = document.createElement('div');
+      activeInPageTooltipEl.className = 'pw-custom-tooltip';
+      activeInPageTooltipEl.textContent = text;
+      shadowRoot.appendChild(activeInPageTooltipEl);
+
+      const targetRect = target.getBoundingClientRect();
+      const tooltipRect = activeInPageTooltipEl.getBoundingClientRect();
+
+      let top = targetRect.top - tooltipRect.height - 6;
+      let left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+
+      if (top < 4) {
+        top = targetRect.bottom + 6;
+        activeInPageTooltipEl.classList.add('pw-tooltip-bottom');
+      }
+
+      if (left < 6) {
+        left = 6;
+      } else if (left + tooltipRect.width > window.innerWidth - 6) {
+        left = window.innerWidth - tooltipRect.width - 6;
+      }
+
+      activeInPageTooltipEl.style.top = `${Math.round(top)}px`;
+      activeInPageTooltipEl.style.left = `${Math.round(left)}px`;
+
+      requestAnimationFrame(() => {
+        if (activeInPageTooltipEl) {
+          activeInPageTooltipEl.classList.add('pw-tooltip-visible');
+        }
+      });
+    }
+
+    function hideInPageTooltip() {
+      if (activeInPageTooltipEl) {
+        const el = activeInPageTooltipEl;
+        activeInPageTooltipEl = null;
+        el.classList.remove('pw-tooltip-visible');
+        setTimeout(() => el.remove(), 120);
+      }
+    }
+
+    // Attach tooltip listeners inside shadowRoot
+    if (shadowRoot) {
+      shadowRoot.addEventListener('mouseenter', (e) => {
+        const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
+        if (target) showInPageTooltip(target);
+      }, true);
+
+      shadowRoot.addEventListener('mouseleave', (e) => {
+        const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
+        if (target) hideInPageTooltip();
+      }, true);
+
+      shadowRoot.addEventListener('mousedown', () => {
+        hideInPageTooltip();
+      }, true);
+    }
 
     // Listener for popup fill trigger
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -774,11 +840,11 @@
         </div>
         <div class="pw-cred-info">
           <div class="pw-cred-user-row">
-            <span class="pw-cred-user" title="${escapeHtml(cred.username || 'No username')}">${highlightedUsername}</span>
-            ${!isSearchResult && cred.hostname && cred.origin !== window.location.origin ? `<span class="pw-origin-tag" title="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
+            <span class="pw-cred-user" data-tooltip="${escapeHtml(cred.username || 'No username')}">${highlightedUsername}</span>
+            ${!isSearchResult && cred.hostname && cred.origin !== window.location.origin ? `<span class="pw-origin-tag" data-tooltip="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname)}</span>` : ''}
           </div>
           ${isSearchResult && siteSource ? `
-            <div class="pw-cred-source-row" title="${escapeHtml(cred.origin || siteSource)}">
+            <div class="pw-cred-source-row" data-tooltip="${escapeHtml(cred.origin || siteSource)}">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -787,7 +853,7 @@
               <span>${highlightedSource}</span>
             </div>
           ` : ''}
-          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}" title="${escapeHtml(cred.password)}">
+          <div class="pw-cred-pass" data-pass="${escapeHtml(cred.password)}" data-tooltip="${escapeHtml(cred.password)}">
             <svg class="pw-pass-key-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -797,7 +863,7 @@
           ${lastUsedText ? `<div class="pw-last-used-sub">${escapeHtml(lastUsedText)}</div>` : ''}
         </div>
         <div class="pw-cred-actions">
-          <button type="button" class="pw-btn-toggle-pass" data-action="toggle-pass" title="Show / hide password">
+          <button type="button" class="pw-btn-toggle-pass" data-action="toggle-pass" data-tooltip="Show / hide password">
             <svg class="pw-eye-open" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -807,14 +873,14 @@
               <line x1="1" y1="1" x2="23" y2="23"></line>
             </svg>
           </button>
-          <button type="button" class="pw-btn-copy" data-action="copy" data-id="${escapeHtml(cred.id)}" title="Copy password">
+          <button type="button" class="pw-btn-copy" data-action="copy" data-id="${escapeHtml(cred.id)}" data-tooltip="Copy password">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
           <div class="pw-delete-wrap">
-            <button type="button" class="pw-btn-delete" data-action="delete" data-id="${escapeHtml(cred.id)}" title="Delete login">
+            <button type="button" class="pw-btn-delete" data-action="delete" data-id="${escapeHtml(cred.id)}" data-tooltip="Delete login">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -1364,7 +1430,7 @@
             <label class="pw-prompt-label">Password</label>
             <div class="pw-prompt-pass-wrap">
               <input type="password" class="pw-prompt-input pw-prompt-input-pass" id="pw-prompt-password" value="${escapeHtml(cred.password || '')}" placeholder="Password" autocomplete="off" spellcheck="false" />
-              <button type="button" class="pw-prompt-toggle-pass" id="pw-prompt-eye" title="Show / hide password">
+              <button type="button" class="pw-prompt-toggle-pass" id="pw-prompt-eye" data-tooltip="Show / hide password">
                 <svg class="pw-prompt-eye-open" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
@@ -2241,6 +2307,39 @@
         background: #4f46e5;
         color: #ffffff;
         border-color: #4f46e5;
+      }
+
+      /* Custom In-Page Tooltip */
+      .pw-custom-tooltip {
+        position: fixed;
+        z-index: 2147483647;
+        pointer-events: none;
+        background: #0f172a;
+        color: #f1f5f9;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 4px 14px -1px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(99, 102, 241, 0.2);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.25;
+        white-space: nowrap;
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 0;
+        transform: translateY(3px) scale(0.96);
+        transition: opacity 0.14s cubic-bezier(0.16, 1, 0.3, 1), transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      .pw-custom-tooltip.pw-tooltip-bottom {
+        transform: translateY(-3px) scale(0.96);
+      }
+
+      .pw-custom-tooltip.pw-tooltip-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
     `;
   }
