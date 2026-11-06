@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
   <link rel="icon" type="image/png" href="../assets/icons/icon48.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg: #090d16;
@@ -19,7 +22,13 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
@@ -28,6 +37,7 @@
       min-height: 100vh;
       line-height: 1.6;
     }
+
     /* Sidebar */
     .sidebar {
       width: 280px;
@@ -42,6 +52,7 @@
       overflow-y: auto;
       flex-shrink: 0;
     }
+
     .brand {
       display: flex;
       align-items: center;
@@ -52,8 +63,17 @@
       font-size: 1.1rem;
       margin-bottom: 28px;
     }
-    .brand img { width: 28px; height: 28px; border-radius: 6px; }
-    .nav-group { margin-bottom: 24px; }
+
+    .brand img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .nav-group {
+      margin-bottom: 24px;
+    }
+
     .nav-label {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -62,6 +82,7 @@
       margin-bottom: 10px;
       font-weight: 700;
     }
+
     .nav-item {
       display: block;
       padding: 8px 12px;
@@ -72,10 +93,12 @@
       transition: all 0.15s ease;
       margin-bottom: 4px;
     }
+
     .nav-item:hover {
       color: #fff;
       background: rgba(99, 102, 241, 0.1);
     }
+
     .nav-item.active {
       color: #818cf8 !important;
       background: rgba(99, 102, 241, 0.18) !important;
@@ -88,32 +111,42 @@
       padding: 48px 60px;
       max-width: 900px;
     }
+
     .content h1 {
       font-size: 2.5rem;
       margin-bottom: 12px;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
+
     .content h2 {
       font-size: 1.6rem;
       margin: 40px 0 16px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
     }
+
     .content h3 {
       font-size: 1.25rem;
       margin: 24px 0 12px;
     }
+
     .content p {
       color: var(--text-muted);
       margin-bottom: 16px;
     }
-    .content ul, .content ol {
+
+    .content ul,
+    .content ol {
       margin-bottom: 20px;
       padding-left: 24px;
       color: var(--text-muted);
     }
-    .content li { margin-bottom: 8px; }
+
+    .content li {
+      margin-bottom: 8px;
+    }
+
     .code-box {
       background: #060911;
       border: 1px solid var(--border);
@@ -125,6 +158,7 @@
       overflow-x: auto;
       color: #38bdf8;
     }
+
     .callout {
       background: rgba(99, 102, 241, 0.1);
       border-left: 4px solid var(--accent);
@@ -132,18 +166,39 @@
       border-radius: 0 8px 8px 0;
       margin: 24px 0;
     }
-    .callout p { color: #cbd5e1; margin-bottom: 0; }
+
+    .callout p {
+      color: #cbd5e1;
+      margin-bottom: 0;
+    }
+
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
       margin: 20px 0;
     }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 12px 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    th { background: rgba(255,255,255,0.03); color: var(--text-muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Sidebar -->
@@ -179,14 +234,19 @@
   <!-- Content -->
   <main class="content">
     <h1 id="overview">Password Manager Wiki</h1>
-    <p>Welcome to the official developer and user documentation for <strong>Chrome Password Manager</strong>. This project is a Manifest V3 extension designed to solve the critical friction caused by native browser password autofill policies.</p>
+    <p>Welcome to the official developer and user documentation for <strong>Chrome Password Manager</strong>. This
+      project is a Manifest V3 extension designed to solve the critical friction caused by native browser password
+      autofill policies.</p>
 
     <div class="callout">
-      <p><strong>Key Mission:</strong> Enable reliable, secure credential selection, generation, and autofill across insecure HTTP origins, custom development ports (e.g. <code>localhost:3000</code>, <code>localhost:8899</code>), and internal routers without invasive browser warnings or broken dropdowns.</p>
+      <p><strong>Key Mission:</strong> Enable reliable, secure credential selection, generation, and autofill across
+        insecure HTTP origins, custom development ports (e.g. <code>localhost:3000</code>, <code>localhost:8899</code>),
+        and internal routers without invasive browser warnings or broken dropdowns.</p>
     </div>
 
     <h2 id="installation">Installation Guide</h2>
-    <p>Because Password Manager is designed for developers and power users, it installs as an unpacked Manifest V3 extension in Google Chrome or any Chromium-compatible browser (Edge, Brave, Arc, Opera, Vivaldi):</p>
+    <p>Because Password Manager is designed for developers and power users, it installs as an unpacked Manifest V3
+      extension in Google Chrome or any Chromium-compatible browser (Edge, Brave, Arc, Opera, Vivaldi):</p>
     <ol>
       <li>Clone or download this repository to your local machine:
         <div class="code-box">git clone https://github.com/jazeel-zainudeen/chrome-password-manager.git</div>
@@ -199,7 +259,8 @@
     </ol>
 
     <h2 id="quickstart">Quickstart Walkthrough</h2>
-    <p>You can verify that password autofill works on unencrypted HTTP connections using the included Python HTTP test server:</p>
+    <p>You can verify that password autofill works on unencrypted HTTP connections using the included Python HTTP test
+      server:</p>
     <div class="code-box">cd test-page && python3 server.py</div>
     <p>Then open <code>http://localhost:8899/index.html</code> in Chrome:</p>
     <ul>
@@ -210,8 +271,10 @@
     </ul>
 
     <h2 id="insecure-autofill">Insecure HTTP Autofill</h2>
-    <p>Modern Google Chrome enforces strict warnings on password fields hosted on unencrypted HTTP connections: <em>"Password form on an insecure (http://) page"</em>, preventing native auto-suggestion.</p>
-    <p>Password Manager circumvents this restriction through an intelligent content script listener that operates seamlessly across:</p>
+    <p>Modern Google Chrome enforces strict warnings on password fields hosted on unencrypted HTTP connections:
+      <em>"Password form on an insecure (http://) page"</em>, preventing native auto-suggestion.</p>
+    <p>Password Manager circumvents this restriction through an intelligent content script listener that operates
+      seamlessly across:</p>
     <ul>
       <li><code>http://localhost:*</code> and <code>http://127.0.0.1:*</code></li>
       <li>Internal network IPs (e.g. <code>http://192.168.1.1</code>, <code>http://10.0.0.1</code>)</li>
@@ -219,23 +282,30 @@
     </ul>
 
     <h2 id="shadow-dom">Closed Shadow DOM Isolation</h2>
-    <p>All in-page UI elements (the floating credential picker, the inline key trigger button, custom tooltips, and save banners) are mounted inside a <strong>Closed Shadow DOM</strong> (<code>mode: 'closed'</code>):</p>
+    <p>All in-page UI elements (the floating credential picker, the inline key trigger button, custom tooltips, and save
+      banners) are mounted inside a <strong>Closed Shadow DOM</strong> (<code>mode: 'closed'</code>):</p>
     <div class="callout">
       <p><strong>Security & CSS Guarantee:</strong><br>
-      1. Web page JavaScript <strong>cannot</strong> access <code>container.shadowRoot</code> to inspect DOM elements or sniff passwords.<br>
-      2. Host page CSS frameworks (Tailwind resets, Bootstrap, high-specificity styles) <strong>cannot</strong> leak in and break the UI layout.</p>
+        1. Web page JavaScript <strong>cannot</strong> access <code>container.shadowRoot</code> to inspect DOM elements
+        or sniff passwords.<br>
+        2. Host page CSS frameworks (Tailwind resets, Bootstrap, high-specificity styles) <strong>cannot</strong> leak
+        in and break the UI layout.</p>
     </div>
 
     <h2 id="vault-management">Vault Management & Search</h2>
     <p>Clicking the extension icon opens the sleek Dark Mode management interface:</p>
     <ul>
-      <li><strong>Active Site Tab:</strong> Displays all logins matching the current tab's domain and origin with live search filtering and keyword highlight tags.</li>
-      <li><strong>All Vault Logins:</strong> View, search, edit, copy, and delete accounts stored across any website or internal port.</li>
-      <li><strong>Settings:</strong> Toggle HTTP autofill, auto-focus picker triggers, and export/import vaults in JSON or CSV format.</li>
+      <li><strong>Active Site Tab:</strong> Displays all logins matching the current tab's domain and origin with live
+        search filtering and keyword highlight tags.</li>
+      <li><strong>All Vault Logins:</strong> View, search, edit, copy, and delete accounts stored across any website or
+        internal port.</li>
+      <li><strong>Settings:</strong> Toggle HTTP autofill, auto-focus picker triggers, and export/import vaults in JSON
+        or CSV format.</li>
     </ul>
 
     <h2 id="generator">CSPRNG Password Generator</h2>
-    <p>The extension features a built-in cryptographically secure password generator implemented in <code>utils/crypto.js</code>:</p>
+    <p>The extension features a built-in cryptographically secure password generator implemented in
+      <code>utils/crypto.js</code>:</p>
     <ul>
       <li>Uses <code>crypto.getRandomValues</code> to sample from custom entropy pools.</li>
       <li>Uses a CSPRNG-driven Fisher-Yates array shuffle to eliminate positional bias.</li>
@@ -256,7 +326,8 @@
           <tr>
             <td><strong>Manifest V3</strong></td>
             <td><code>manifest.json</code></td>
-            <td>Defines minimal permissions (<code>storage</code>, <code>tabs</code>, <code>activeTab</code>) and content scripts.</td>
+            <td>Defines minimal permissions (<code>storage</code>, <code>tabs</code>, <code>activeTab</code>) and
+              content scripts.</td>
           </tr>
           <tr>
             <td><strong>Background Service Worker</strong></td>
@@ -285,18 +356,26 @@
     <h2 id="security">Security Hardening & Privacy</h2>
     <p>Password Manager was designed with strict security standards:</p>
     <ul>
-      <li><strong>Zero Remote Communication:</strong> Does not connect to any telemetry, analytics, or external cloud servers.</li>
-      <li><strong>No Plaintext in DOM:</strong> Passwords are never placed in <code>data-pass</code> or title attributes. Passwords in the in-page dropdown are masked with <code>••••••••</code> until explicitly revealed.</li>
-      <li><strong>Ephemeral Pending Store:</strong> Form submissions hold temporary credentials in service worker memory (isolated from page scripts) rather than shared <code>sessionStorage</code>.</li>
-      <li><strong>Public Suffix List Matching:</strong> Aware of multi-part domains (<code>github.io</code>, <code>co.uk</code>, <code>vercel.app</code>) to prevent cross-tenant credential theft.</li>
+      <li><strong>Zero Remote Communication:</strong> Does not connect to any telemetry, analytics, or external cloud
+        servers.</li>
+      <li><strong>No Plaintext in DOM:</strong> Passwords are never placed in <code>data-pass</code> or title
+        attributes. Passwords in the in-page dropdown are masked with <code>••••••••</code> until explicitly revealed.
+      </li>
+      <li><strong>Ephemeral Pending Store:</strong> Form submissions hold temporary credentials in service worker memory
+        (isolated from page scripts) rather than shared <code>sessionStorage</code>.</li>
+      <li><strong>Public Suffix List Matching:</strong> Aware of multi-part domains (<code>github.io</code>,
+        <code>co.uk</code>, <code>vercel.app</code>) to prevent cross-tenant credential theft.</li>
     </ul>
 
     <h2 id="storage">Storage Model & Persistence</h2>
-    <p>All credentials persist strictly inside Chrome's private extension sandbox via <code>chrome.storage.local</code>:</p>
+    <p>All credentials persist strictly inside Chrome's private extension sandbox via <code>chrome.storage.local</code>:
+    </p>
     <ul>
-      <li><strong>Local Isolation:</strong> Web page JavaScript, third-party trackers, and other extensions cannot access the <code>chrome.storage.local</code> namespace.</li>
+      <li><strong>Local Isolation:</strong> Web page JavaScript, third-party trackers, and other extensions cannot
+        access the <code>chrome.storage.local</code> namespace.</li>
       <li><strong>Decoupled from Cloud:</strong> Operates entirely offline with zero cloud server requirements.</li>
-      <li><strong>Export & Backup:</strong> Easily export your full vault to JSON or import Chrome CSV dumps directly from the Settings panel.</li>
+      <li><strong>Export & Backup:</strong> Easily export your full vault to JSON or import Chrome CSV dumps directly
+        from the Settings panel.</li>
     </ul>
   </main>
 
@@ -348,4 +427,5 @@
     }
   </script>
 </body>
+
 </html>
