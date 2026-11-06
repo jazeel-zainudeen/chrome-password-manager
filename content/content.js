@@ -26,9 +26,9 @@
   let inPageTooltipHideTimer = null;
 
   function showInPageTooltip(target) {
-    if (!target || !document.contains(target)) return;
+    if (!target || !shadowRoot || !shadowRoot.contains(target)) return;
     const text = target.getAttribute('data-tooltip');
-    if (!text || !text.trim() || !shadowRoot) return;
+    if (!text || !text.trim()) return;
 
     hideInPageTooltip(true);
     activeInPageTooltipTarget = target;
