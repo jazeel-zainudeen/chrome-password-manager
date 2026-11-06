@@ -20,6 +20,53 @@
   let isPositioning = false;
   let isDeletingConfirm = false;
   let inputObserver = null;
+  let activeInPageTooltipEl = null;
+
+  function showInPageTooltip(target) {
+    hideInPageTooltip();
+    const text = target.getAttribute('data-tooltip');
+    if (!text || !text.trim() || !shadowRoot) return;
+
+    activeInPageTooltipEl = document.createElement('div');
+    activeInPageTooltipEl.className = 'pw-custom-tooltip';
+    activeInPageTooltipEl.textContent = text;
+    shadowRoot.appendChild(activeInPageTooltipEl);
+
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = activeInPageTooltipEl.getBoundingClientRect();
+
+    let top = targetRect.top - tooltipRect.height - 6;
+    let left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+
+    if (top < 4) {
+      top = targetRect.bottom + 6;
+      activeInPageTooltipEl.classList.add('pw-tooltip-bottom');
+    }
+
+    if (left < 6) {
+      left = 6;
+    } else if (left + tooltipRect.width > window.innerWidth - 6) {
+      left = window.innerWidth - tooltipRect.width - 6;
+    }
+
+    activeInPageTooltipEl.style.top = `${Math.round(top)}px`;
+    activeInPageTooltipEl.style.left = `${Math.round(left)}px`;
+
+    requestAnimationFrame(() => {
+      if (activeInPageTooltipEl) {
+        activeInPageTooltipEl.classList.add('pw-tooltip-visible');
+      }
+    });
+  }
+
+  function hideInPageTooltip() {
+    if (activeInPageTooltipEl) {
+      const el = activeInPageTooltipEl;
+      activeInPageTooltipEl = null;
+      el.classList.remove('pw-tooltip-visible');
+      setTimeout(() => el.remove(), 120);
+    }
+  }
 
   // Immediately inject global suppression styles at document_start
   injectGlobalSuppressionStyles();
@@ -167,55 +214,6 @@
 
     window.addEventListener('resize', repositionActiveDropdown, { passive: true });
     window.addEventListener('scroll', repositionActiveDropdown, { passive: true });
-
-    // Custom Tooltip Controller inside Shadow DOM / Page
-    let activeInPageTooltipEl = null;
-
-    function showInPageTooltip(target) {
-      hideInPageTooltip();
-      const text = target.getAttribute('data-tooltip');
-      if (!text || !text.trim() || !shadowRoot) return;
-
-      activeInPageTooltipEl = document.createElement('div');
-      activeInPageTooltipEl.className = 'pw-custom-tooltip';
-      activeInPageTooltipEl.textContent = text;
-      shadowRoot.appendChild(activeInPageTooltipEl);
-
-      const targetRect = target.getBoundingClientRect();
-      const tooltipRect = activeInPageTooltipEl.getBoundingClientRect();
-
-      let top = targetRect.top - tooltipRect.height - 6;
-      let left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
-
-      if (top < 4) {
-        top = targetRect.bottom + 6;
-        activeInPageTooltipEl.classList.add('pw-tooltip-bottom');
-      }
-
-      if (left < 6) {
-        left = 6;
-      } else if (left + tooltipRect.width > window.innerWidth - 6) {
-        left = window.innerWidth - tooltipRect.width - 6;
-      }
-
-      activeInPageTooltipEl.style.top = `${Math.round(top)}px`;
-      activeInPageTooltipEl.style.left = `${Math.round(left)}px`;
-
-      requestAnimationFrame(() => {
-        if (activeInPageTooltipEl) {
-          activeInPageTooltipEl.classList.add('pw-tooltip-visible');
-        }
-      });
-    }
-
-    function hideInPageTooltip() {
-      if (activeInPageTooltipEl) {
-        const el = activeInPageTooltipEl;
-        activeInPageTooltipEl = null;
-        el.classList.remove('pw-tooltip-visible');
-        setTimeout(() => el.remove(), 120);
-      }
-    }
 
     // Attach tooltip listeners inside shadowRoot
     if (shadowRoot) {
