@@ -6,17 +6,18 @@ Welcome to the **Chrome Password Manager** wiki! This documentation covers the a
 
 ## 📑 Table of Contents
 
-- [1. Overview & Problem Statement](#1-overview--problem-statement)
-- [2. Installation & Quickstart](#2-installation--quickstart)
-- [3. Architecture & Manifest V3 Design](#3-architecture--manifest-v3-design)
-- [4. In-Page Autofill & Closed Shadow DOM](#4-in-page-autofill--closed-shadow-dom)
-- [5. Vault Management, Search & Editing](#5-vault-management-search--editing)
-- [6. Cryptography & Password Generation](#6-cryptography--password-generation)
+- [1. Overview & Problem Statement](#overview--problem-statement)
+- [2. Installation & Quickstart](#installation--quickstart)
+- [3. Architecture & Manifest V3 Design](#architecture--manifest-v3-design)
+- [4. In-Page Autofill & Closed Shadow DOM](#in-page-autofill--closed-shadow-dom)
+- [5. Vault Management, Search & Editing](#vault-management-search--editing)
+- [6. Cryptography & Password Generation](#cryptography--password-generation)
 - [7. Security Model & Hardening](#7-security-model--hardening)
 - [8. Backup, Export & Migration](#8-backup-export--migration)
 
 ---
 
+<a id="overview--problem-statement"></a>
 ## 1. Overview & Problem Statement
 
 In modern Google Chrome, the native password manager **strictly suppresses password auto-suggestion and autofill dropdowns on unencrypted (`http://`) origins**, displaying warnings like *"Password form on an insecure (http://) page"*.
@@ -30,6 +31,7 @@ While this policy protects public web traffic, it causes constant friction for:
 
 ---
 
+<a id="installation--quickstart"></a>
 ## 2. Installation & Quickstart
 
 ### Prerequisites
@@ -62,6 +64,7 @@ Open **[http://localhost:8899/index.html](http://localhost:8899/index.html)** in
 
 ---
 
+<a id="architecture--manifest-v3-design"></a>
 ## 3. Architecture & Manifest V3 Design
 
 ```mermaid
@@ -85,6 +88,7 @@ flowchart TD
 
 ---
 
+<a id="in-page-autofill--closed-shadow-dom"></a>
 ## 4. In-Page Autofill & Closed Shadow DOM
 
 ### Closed Shadow DOM Isolation
@@ -105,6 +109,7 @@ The extension supports:
 
 ---
 
+<a id="vault-management-search--editing"></a>
 ## 5. Vault Management, Search & Editing
 
 The extension popup provides full vault control:
@@ -115,6 +120,7 @@ The extension popup provides full vault control:
 
 ---
 
+<a id="cryptography--password-generation"></a>
 ## 6. Cryptography & Password Generation
 
 The generator in `utils/crypto.js` utilizes modern Web Crypto primitives:
@@ -124,6 +130,7 @@ The generator in `utils/crypto.js` utilizes modern Web Crypto primitives:
 
 ---
 
+<a id="security-model--hardening"></a>
 ## 7. Security Model & Hardening
 
 The codebase was audited and hardened against modern browser attack vectors:
@@ -134,6 +141,7 @@ The codebase was audited and hardened against modern browser attack vectors:
 
 ---
 
+<a id="backup-export--migration"></a>
 ## 8. Backup, Export & Migration
 
 Under the **Settings** tab in the extension popup:

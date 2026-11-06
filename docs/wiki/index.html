@@ -289,6 +289,14 @@
       <li><strong>Ephemeral Pending Store:</strong> Form submissions hold temporary credentials in service worker memory (isolated from page scripts) rather than shared <code>sessionStorage</code>.</li>
       <li><strong>Public Suffix List Matching:</strong> Aware of multi-part domains (<code>github.io</code>, <code>co.uk</code>, <code>vercel.app</code>) to prevent cross-tenant credential theft.</li>
     </ul>
+
+    <h2 id="storage">Storage Model & Persistence</h2>
+    <p>All credentials persist strictly inside Chrome's private extension sandbox via <code>chrome.storage.local</code>:</p>
+    <ul>
+      <li><strong>Local Isolation:</strong> Web page JavaScript, third-party trackers, and other extensions cannot access the <code>chrome.storage.local</code> namespace.</li>
+      <li><strong>Decoupled from Cloud:</strong> Operates entirely offline with zero cloud server requirements.</li>
+      <li><strong>Export & Backup:</strong> Easily export your full vault to JSON or import Chrome CSV dumps directly from the Settings panel.</li>
+    </ul>
   </main>
 
 </body>
