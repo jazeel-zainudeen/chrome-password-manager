@@ -72,12 +72,13 @@
       transition: all 0.15s ease;
       margin-bottom: 4px;
     }
-    .nav-item:hover, .nav-item.active {
+    .nav-item:hover {
       color: #fff;
-      background: rgba(99, 102, 241, 0.15);
+      background: rgba(99, 102, 241, 0.1);
     }
     .nav-item.active {
-      color: #818cf8;
+      color: #818cf8 !important;
+      background: rgba(99, 102, 241, 0.18) !important;
       font-weight: 600;
     }
 
@@ -299,5 +300,52 @@
     </ul>
   </main>
 
+  <script>
+    // Smooth scroll and active state sync on click and scroll
+    const navLinks = document.querySelectorAll('.nav-item');
+    const sections = Array.from(navLinks)
+      .map(link => {
+        const id = link.getAttribute('href').replace('#', '');
+        return document.getElementById(id);
+      })
+      .filter(Boolean);
+
+    function setActiveLink(id) {
+      navLinks.forEach(link => {
+        const linkId = link.getAttribute('href').replace('#', '');
+        if (linkId === id) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const id = link.getAttribute('href').replace('#', '');
+        const target = document.getElementById(id);
+        if (target) {
+          setActiveLink(id);
+        }
+      });
+    });
+
+    // IntersectionObserver to update active tab dynamically as user scrolls
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        const visibleEntry = entries.find(e => e.isIntersecting);
+        if (visibleEntry && visibleEntry.target) {
+          setActiveLink(visibleEntry.target.id);
+        }
+      }, {
+        root: null,
+        rootMargin: '-10% 0px -70% 0px',
+        threshold: 0
+      });
+
+      sections.forEach(s => observer.observe(s));
+    }
+  </script>
 </body>
 </html>
