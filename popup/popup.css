@@ -558,6 +558,15 @@ body {
   border-color: var(--primary);
 }
 
+/* Search Highlights */
+.search-highlight {
+  background: rgba(245, 158, 11, 0.32);
+  color: #fbbf24;
+  font-weight: 600;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 /* Generator Tab */
 .generator-card {
   display: flex;

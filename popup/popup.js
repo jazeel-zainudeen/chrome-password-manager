@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnGenEditPass = document.getElementById('btn-gen-edit-pass');
 
   // Vault elements
+  const currentSearchInput = document.getElementById('current-search-input');
   const vaultSearchInput = document.getElementById('vault-search-input');
   const filterChips = document.querySelectorAll('.filter-chip');
   const countAll = document.getElementById('count-all');
@@ -163,6 +164,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     closeAllDeleteConfirms();
     if (!currentUrlInfo) return;
     const creds = await OmniStorage.getCredentialsForUrl(currentUrlInfo.origin || currentUrlInfo.href);
+    const query = (currentSearchInput ? currentSearchInput.value : '').toLowerCase().trim();
+
+    const filtered = creds.filter(item => {
+      if (!query) return true;
+      const matchesUser = (item.username || '').toLowerCase().includes(query);
+      const matchesHost = (item.hostname || '').toLowerCase().includes(query);
+      const matchesOrigin = (item.origin || '').toLowerCase().includes(query);
+      return matchesUser || matchesHost || matchesOrigin;
+    });
+
     currentCredsContainer.innerHTML = '';
 
     if (creds.length === 0) {
@@ -179,26 +190,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    creds.forEach((cred) => {
-      const card = createCredentialCard(cred, true);
+    if (filtered.length === 0) {
+      currentCredsContainer.innerHTML = `
+        <div class="empty-view">
+          <div class="empty-view-title">No matching logins found</div>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach((cred) => {
+      const card = createCredentialCard(cred, true, query);
       currentCredsContainer.appendChild(card);
     });
   }
 
   // Helper to construct credential card element
-  function createCredentialCard(cred, showFillButton) {
+  function createCredentialCard(cred, showFillButton, searchQuery = '') {
     const card = document.createElement('div');
     card.className = 'cred-card';
 
     const firstLetter = (cred.username ? cred.username[0] : 'U').toUpperCase();
     const isInsecure = cred.isInsecure || cred.protocol === 'http:';
+    const highlightedUsername = highlightMatch(cred.username || 'No username', searchQuery);
+    const highlightedHostname = highlightMatch(cred.hostname || 'Unknown', searchQuery);
 
     card.innerHTML = `
       <div class="cred-card-main">
         <div class="cred-user-wrap">
           <div class="cred-avatar">${firstLetter}</div>
           <div class="cred-user-meta">
-            <div class="cred-username" data-tooltip="${escapeHtml(cred.username)}">${escapeHtml(cred.username || 'No username')}</div>
+            <div class="cred-username" data-tooltip="${escapeHtml(cred.username)}">${highlightedUsername}</div>
             <div class="cred-password-mask" data-pass="${escapeHtml(cred.password)}">••••••••••••</div>
           </div>
         </div>
@@ -237,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
       <div class="cred-card-footer">
-        <span class="cred-origin-badge" data-tooltip="${escapeHtml(cred.origin || cred.hostname)}">${escapeHtml(cred.hostname || 'Unknown')}</span>
+        <span class="cred-origin-badge" data-tooltip="${escapeHtml(cred.origin || cred.hostname)}">${highlightedHostname}</span>
         <span class="security-tag ${isInsecure ? 'insecure' : 'secure'}" style="font-size: 9px; padding: 1px 6px;">
           ${isInsecure ? 'HTTP' : 'HTTPS'}
         </span>
@@ -435,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     filtered.forEach(cred => {
-      const card = createCredentialCard(cred, false);
+      const card = createCredentialCard(cred, false, query);
       allCredsContainer.appendChild(card);
     });
   }
@@ -613,7 +635,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Vault Search & Filter events
+  // Search & Filter events
+  if (currentSearchInput) {
+    currentSearchInput.addEventListener('input', renderCurrentSiteCredentials);
+  }
   vaultSearchInput.addEventListener('input', renderVaultList);
 
   filterChips.forEach(chip => {
@@ -935,6 +960,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function highlightMatch(text, query) {
+    const raw = text || '';
+    if (!query) return escapeHtml(raw);
+    const escapedText = escapeHtml(raw);
+    const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
   }
 
   // Initialize Custom Tooltips
