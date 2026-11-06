@@ -384,11 +384,13 @@ body {
   transform: translateY(-50%);
 }
 
-#btn-toggle-input-pass {
+#btn-toggle-input-pass,
+#btn-toggle-edit-pass {
   right: 28px;
 }
 
-#btn-fill-generated {
+#btn-fill-generated,
+#btn-gen-edit-pass {
   right: 4px;
 }
 
@@ -450,6 +452,7 @@ body {
 
 .cred-user-meta {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .cred-username {
@@ -465,12 +468,19 @@ body {
   font-size: 11px;
   color: var(--text-muted);
   letter-spacing: 1.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  display: block;
 }
 
 .cred-card-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .cred-card-footer {
