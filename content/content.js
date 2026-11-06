@@ -21,9 +21,42 @@
   let isDeletingConfirm = false;
   let inputObserver = null;
 
+  // Immediately inject global suppression styles at document_start
+  injectGlobalSuppressionStyles();
+
+  // Early mutation observer to intercept input elements before Chrome renders or autofocuses them
+  const earlyDomObserver = new MutationObserver((mutations) => {
+    let hasNewInputs = false;
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType === 1) {
+          if (node.tagName === 'INPUT' || (node.querySelector && node.querySelector('input'))) {
+            hasNewInputs = true;
+            break;
+          }
+        }
+      }
+      if (hasNewInputs) break;
+    }
+    if (hasNewInputs) {
+      decorateInputs();
+    }
+  });
+
+  try {
+    earlyDomObserver.observe(document.documentElement || document, {
+      childList: true,
+      subtree: true
+    });
+  } catch (e) {}
+
   // Initialize extension context
   async function init() {
-    settings = await OmniStorage.getSettings();
+    try {
+      settings = await OmniStorage.getSettings();
+    } catch (e) {
+      settings = { hideNativeOptions: true, enableOnHttp: true, autoSuggestOnFocus: true, showInlineIcon: true };
+    }
     const isHttp = window.location.protocol === 'http:';
 
     // If disabled on HTTP and currently on HTTP, skip
@@ -31,11 +64,19 @@
       return;
     }
 
-    createShadowHost();
-    await refreshCredentials();
-    attachGlobalListeners();
-    observeDomChanges();
-    checkPendingSavePrompt();
+    const mountContainer = () => {
+      createShadowHost();
+      refreshCredentials();
+      attachGlobalListeners();
+      observeDomChanges();
+      checkPendingSavePrompt();
+    };
+
+    if (document.body) {
+      mountContainer();
+    } else {
+      document.addEventListener('DOMContentLoaded', mountContainer, { once: true });
+    }
   }
 
   /**
@@ -284,7 +325,7 @@
       if (input.dataset.passwordsDecorated) return;
       input.dataset.passwordsDecorated = 'true';
 
-      if (settings && settings.hideNativeOptions !== false) {
+      if (!settings || settings.hideNativeOptions !== false) {
         suppressNativeAutofill(input);
       }
     });
@@ -305,6 +346,16 @@
         return;
       }
 
+      // Handle autofocus: Chrome triggers native autofill popup immediately on page load
+      // if an input has the autofocus attribute. Neutralize it early!
+      if (input.hasAttribute('autofocus')) {
+        input.removeAttribute('autofocus');
+        input.dataset.passwordsHadAutofocus = 'true';
+        if (document.activeElement === input) {
+          input.blur();
+        }
+      }
+
       // 1. Force autocomplete to off / new-password to stop Chrome's generic popup
       input.setAttribute('autocomplete', 'chrome-off');
       input.setAttribute('data-lpignore', 'true');
@@ -318,11 +369,9 @@
         input.form.setAttribute('autocomplete', 'off');
       }
 
-      // 2. Readonly shield: prevents Chrome from popping up native suggestion menu on click.
-      // Keeps input readonly initially; on user pointer/key interaction, unlocks immediately.
-      if (document.activeElement !== input) {
-        input.readOnly = true;
-      }
+      // 2. Readonly shield: prevents Chrome from popping up native suggestion menu on click or focus.
+      // Keeps input readonly initially; on explicit user pointer or key interaction, unlocks immediately.
+      input.readOnly = true;
 
       const releaseReadOnly = () => {
         // Unlock field slightly after touch/mouse to let our dropdown trigger without Chrome's native autofill
@@ -330,7 +379,7 @@
           if (input.dataset.passwordsOrigReadonly !== 'true') {
             input.readOnly = false;
           }
-        }, 150);
+        }, 120);
       };
 
       input.addEventListener('pointerdown', releaseReadOnly, { capture: true, passive: true });
@@ -341,7 +390,6 @@
           input.readOnly = false;
         }
       }, { capture: true, passive: true });
-      input.addEventListener('focus', releaseReadOnly, { capture: true, passive: true });
 
       input.addEventListener('blur', () => {
         if (input.dataset.passwordsOrigReadonly !== 'true') {
