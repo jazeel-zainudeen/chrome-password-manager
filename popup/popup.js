@@ -797,7 +797,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Elegant Tooltip Controller
   let activeTooltipEl = null;
-  let tooltipTimeout = null;
+  let activeTooltipTarget = null;
+  let tooltipShowTimer = null;
+  let tooltipHideTimer = null;
 
   function initTooltips() {
     // Automatically convert any existing or dynamically created [title] attributes to [data-tooltip]
@@ -843,7 +845,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('mouseover', (e) => {
       const target = e.target.closest ? e.target.closest('[data-tooltip]') : null;
       if (!target) return;
-      showCustomTooltip(target);
+      if (activeTooltipTarget === target) return;
+
+      if (tooltipHideTimer) {
+        clearTimeout(tooltipHideTimer);
+        tooltipHideTimer = null;
+      }
+      if (tooltipShowTimer) {
+        clearTimeout(tooltipShowTimer);
+      }
+
+      tooltipShowTimer = setTimeout(() => {
+        showCustomTooltip(target);
+      }, 70);
     }, true);
 
     document.addEventListener('mouseout', (e) => {
@@ -853,27 +867,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (related && target.contains(related)) {
         return;
       }
+
+      if (tooltipShowTimer) {
+        clearTimeout(tooltipShowTimer);
+        tooltipShowTimer = null;
+      }
+
       hideCustomTooltip();
     }, true);
 
     document.addEventListener('mousedown', () => {
-      hideCustomTooltip();
+      hideCustomTooltip(true);
     }, true);
 
     document.addEventListener('click', () => {
-      hideCustomTooltip();
+      hideCustomTooltip(true);
     }, true);
 
     window.addEventListener('scroll', () => {
-      hideCustomTooltip();
+      hideCustomTooltip(true);
     }, { passive: true });
   }
 
   function showCustomTooltip(target) {
-    hideCustomTooltip();
-
+    if (!target || !document.body.contains(target)) return;
     const text = target.getAttribute('data-tooltip');
     if (!text || !text.trim()) return;
+
+    hideCustomTooltip(true);
+    activeTooltipTarget = target;
 
     // Create tooltip element
     activeTooltipEl = document.createElement('div');
@@ -906,22 +928,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Trigger smooth fade-in
     requestAnimationFrame(() => {
-      if (activeTooltipEl) {
+      if (activeTooltipEl && activeTooltipTarget === target) {
         activeTooltipEl.classList.add('tooltip-visible');
       }
     });
   }
 
-  function hideCustomTooltip() {
-    if (tooltipTimeout) {
-      clearTimeout(tooltipTimeout);
-      tooltipTimeout = null;
+  function hideCustomTooltip(immediate = false) {
+    if (tooltipShowTimer) {
+      clearTimeout(tooltipShowTimer);
+      tooltipShowTimer = null;
     }
+    if (tooltipHideTimer) {
+      clearTimeout(tooltipHideTimer);
+      tooltipHideTimer = null;
+    }
+
+    activeTooltipTarget = null;
     if (activeTooltipEl) {
       const el = activeTooltipEl;
       activeTooltipEl = null;
       el.classList.remove('tooltip-visible');
-      setTimeout(() => el.remove(), 120);
+      if (immediate) {
+        el.remove();
+      } else {
+        tooltipHideTimer = setTimeout(() => {
+          el.remove();
+        }, 80);
+      }
     }
   }
 

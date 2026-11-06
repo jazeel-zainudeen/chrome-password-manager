@@ -21,11 +21,17 @@
   let isDeletingConfirm = false;
   let inputObserver = null;
   let activeInPageTooltipEl = null;
+  let activeInPageTooltipTarget = null;
+  let inPageTooltipShowTimer = null;
+  let inPageTooltipHideTimer = null;
 
   function showInPageTooltip(target) {
-    hideInPageTooltip();
+    if (!target || !document.contains(target)) return;
     const text = target.getAttribute('data-tooltip');
     if (!text || !text.trim() || !shadowRoot) return;
+
+    hideInPageTooltip(true);
+    activeInPageTooltipTarget = target;
 
     activeInPageTooltipEl = document.createElement('div');
     activeInPageTooltipEl.className = 'pw-custom-tooltip';
@@ -53,18 +59,34 @@
     activeInPageTooltipEl.style.left = `${Math.round(left)}px`;
 
     requestAnimationFrame(() => {
-      if (activeInPageTooltipEl) {
+      if (activeInPageTooltipEl && activeInPageTooltipTarget === target) {
         activeInPageTooltipEl.classList.add('pw-tooltip-visible');
       }
     });
   }
 
-  function hideInPageTooltip() {
+  function hideInPageTooltip(immediate = false) {
+    if (inPageTooltipShowTimer) {
+      clearTimeout(inPageTooltipShowTimer);
+      inPageTooltipShowTimer = null;
+    }
+    if (inPageTooltipHideTimer) {
+      clearTimeout(inPageTooltipHideTimer);
+      inPageTooltipHideTimer = null;
+    }
+
+    activeInPageTooltipTarget = null;
     if (activeInPageTooltipEl) {
       const el = activeInPageTooltipEl;
       activeInPageTooltipEl = null;
       el.classList.remove('pw-tooltip-visible');
-      setTimeout(() => el.remove(), 120);
+      if (immediate) {
+        el.remove();
+      } else {
+        inPageTooltipHideTimer = setTimeout(() => {
+          el.remove();
+        }, 80);
+      }
     }
   }
 
@@ -229,9 +251,20 @@
         if (!target && e.target && e.target.closest) {
           target = e.target.closest('[data-tooltip]');
         }
-        if (target) {
-          showInPageTooltip(target);
+        if (!target) return;
+        if (activeInPageTooltipTarget === target) return;
+
+        if (inPageTooltipHideTimer) {
+          clearTimeout(inPageTooltipHideTimer);
+          inPageTooltipHideTimer = null;
         }
+        if (inPageTooltipShowTimer) {
+          clearTimeout(inPageTooltipShowTimer);
+        }
+
+        inPageTooltipShowTimer = setTimeout(() => {
+          showInPageTooltip(target);
+        }, 70);
       }, true);
 
       shadowRoot.addEventListener('mouseout', (e) => {
@@ -248,11 +281,17 @@
         if (currentTooltipTarget && related && currentTooltipTarget.contains(related)) {
           return;
         }
+
+        if (inPageTooltipShowTimer) {
+          clearTimeout(inPageTooltipShowTimer);
+          inPageTooltipShowTimer = null;
+        }
+
         hideInPageTooltip();
       }, true);
 
       shadowRoot.addEventListener('mousedown', () => {
-        hideInPageTooltip();
+        hideInPageTooltip(true);
       }, true);
     }
 
@@ -960,26 +999,23 @@
   /**
    * Closes any active delete confirmation popover in the dropdown.
    */
-  function closeActiveContentDeleteConfirm(scopeEl) {
+  function closeActiveContentDeleteConfirm() {
     hideInPageTooltip();
-    const root = scopeEl || activeDropdown || (shadowRoot ? shadowRoot.querySelector('.passwords-dropdown') : null);
-    if (!root) return;
-    try {
-      root.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
-        if (p._timeoutId) clearTimeout(p._timeoutId);
-        if (p.parentNode) {
-          try {
-            p.parentNode.removeChild(p);
-          } catch (_) {}
-        }
-      });
-      root.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
-        b.classList.remove('active-delete');
-      });
-      root.querySelectorAll('.pw-cred-item.has-active-confirm').forEach(i => {
-        i.classList.remove('has-active-confirm');
-      });
-    } catch (_) {}
+    if (!activeDropdown) return;
+    activeDropdown.querySelectorAll('.pw-delete-confirm-popover').forEach(p => {
+      if (p._timeoutId) clearTimeout(p._timeoutId);
+      if (p.parentNode) {
+        try {
+          p.parentNode.removeChild(p);
+        } catch (_) {}
+      }
+    });
+    activeDropdown.querySelectorAll('.pw-btn-delete.active-delete').forEach(b => {
+      b.classList.remove('active-delete');
+    });
+    activeDropdown.querySelectorAll('.pw-cred-item.has-active-confirm').forEach(i => {
+      i.classList.remove('has-active-confirm');
+    });
   }
 
   /**
@@ -1166,7 +1202,7 @@
           evt.stopPropagation();
           evt.preventDefault();
           hideInPageTooltip();
-          closeActiveContentDeleteConfirm(dropdown);
+          closeActiveContentDeleteConfirm();
         });
 
         deleteWrap.appendChild(pop);
