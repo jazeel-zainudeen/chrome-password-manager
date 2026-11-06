@@ -285,6 +285,40 @@
       </div>
     </section>
 
+    <!-- Edit Credential Modal -->
+    <div class="edit-modal-backdrop" id="edit-modal" style="display: none;">
+      <div class="edit-modal-card">
+        <div class="edit-modal-header">
+          <span class="edit-modal-title">Edit Login</span>
+          <button type="button" class="btn-icon" id="btn-close-edit-modal" title="Close">✕</button>
+        </div>
+        <form id="form-edit-cred" class="edit-modal-form">
+          <input type="hidden" id="edit-cred-id">
+          <input type="hidden" id="edit-cred-origin">
+          <div class="form-group">
+            <label>Website / Origin</label>
+            <input type="text" id="edit-cred-domain" placeholder="https://example.com" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Username / Email</label>
+            <input type="text" id="edit-cred-username" placeholder="user@example.com" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="edit-cred-password" placeholder="Password" required autocomplete="off" spellcheck="false">
+              <button type="button" class="btn-icon" id="btn-toggle-edit-pass" title="Toggle visibility">👁</button>
+              <button type="button" class="btn-icon" id="btn-gen-edit-pass" title="Generate strong password">⚡</button>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-edit">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-edit">Update Login</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Global Toast Notification -->
     <div class="popup-toast" id="popup-toast"></div>
   </div>

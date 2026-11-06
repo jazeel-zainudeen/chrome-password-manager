@@ -910,3 +910,70 @@ body {
   z-index: 30;
   position: relative;
 }
+
+/* Edit Credential Modal */
+.edit-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease;
+}
+
+.edit-modal-card {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  padding: 16px;
+  animation: slideUp 0.15s ease;
+}
+
+.edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.edit-modal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.edit-modal-form .form-group {
+  margin-bottom: 10px;
+}
+
+.edit-modal-form label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.btn-edit-cred:hover {
+  color: #818cf8 !important;
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}

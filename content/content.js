@@ -142,6 +142,14 @@
         }
         return true;
       }
+      if (message.type === 'REFRESH_CREDENTIALS') {
+        refreshCredentials().then(() => {
+          sendResponse({ success: true });
+        }).catch(() => {
+          sendResponse({ success: false });
+        });
+        return true;
+      }
       return false;
     });
   }

@@ -39,6 +39,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnToggleInputPass = document.getElementById('btn-toggle-input-pass');
   const btnFillGenerated = document.getElementById('btn-fill-generated');
 
+  // Edit Modal elements
+  const editModal = document.getElementById('edit-modal');
+  const formEditCred = document.getElementById('form-edit-cred');
+  const btnCloseEditModal = document.getElementById('btn-close-edit-modal');
+  const btnCancelEdit = document.getElementById('btn-cancel-edit');
+  const editCredId = document.getElementById('edit-cred-id');
+  const editCredOrigin = document.getElementById('edit-cred-origin');
+  const editCredDomain = document.getElementById('edit-cred-domain');
+  const editCredUsername = document.getElementById('edit-cred-username');
+  const editCredPassword = document.getElementById('edit-cred-password');
+  const btnToggleEditPass = document.getElementById('btn-toggle-edit-pass');
+  const btnGenEditPass = document.getElementById('btn-gen-edit-pass');
+
   // Vault elements
   const vaultSearchInput = document.getElementById('vault-search-input');
   const filterChips = document.querySelectorAll('.filter-chip');
@@ -202,6 +215,12 @@ document.addEventListener('DOMContentLoaded', async () => {
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
+          <button class="btn-icon btn-edit-cred" title="Edit login">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
           ${showFillButton ? `
             <button class="btn-xs btn-primary btn-fill-page">
               Fill
@@ -244,6 +263,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       showToast('Password copied to clipboard!');
     });
+
+    // Event: Edit login
+    const btnEdit = card.querySelector('.btn-edit-cred');
+    if (btnEdit) {
+      btnEdit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAllDeleteConfirms();
+        openEditModal(cred);
+      });
+    }
 
     // Event: Fill in page
     if (showFillButton) {
@@ -464,6 +493,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCurrentSiteCredentials();
     updateTabBadge();
   });
+
+  // Edit Credential Modal Logic
+  function openEditModal(cred) {
+    if (!cred) return;
+    editCredId.value = cred.id || '';
+    editCredOrigin.value = cred.origin || '';
+    editCredDomain.value = cred.origin || cred.hostname || '';
+    editCredUsername.value = cred.username || '';
+    editCredPassword.value = cred.password || '';
+    editCredPassword.type = 'password';
+    editModal.style.display = 'flex';
+    editCredUsername.focus();
+  }
+
+  function closeEditModal() {
+    formEditCred.reset();
+    editModal.style.display = 'none';
+  }
+
+  if (btnCloseEditModal) {
+    btnCloseEditModal.addEventListener('click', closeEditModal);
+  }
+  if (btnCancelEdit) {
+    btnCancelEdit.addEventListener('click', closeEditModal);
+  }
+  if (editModal) {
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) {
+        closeEditModal();
+      }
+    });
+  }
+
+  if (btnToggleEditPass) {
+    btnToggleEditPass.addEventListener('click', () => {
+      editCredPassword.type = editCredPassword.type === 'password' ? 'text' : 'password';
+    });
+  }
+
+  if (btnGenEditPass) {
+    btnGenEditPass.addEventListener('click', () => {
+      const pass = OmniCrypto.generatePassword({ length: 16 });
+      editCredPassword.value = pass;
+      editCredPassword.type = 'text';
+      showToast('Generated strong password inserted');
+    });
+  }
+
+  if (formEditCred) {
+    formEditCred.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = editCredId.value;
+      const domainVal = editCredDomain.value.trim();
+      const username = editCredUsername.value.trim();
+      const password = editCredPassword.value;
+
+      if (!domainVal) {
+        showToast('Website / Origin is required');
+        return;
+      }
+      if (!password) {
+        showToast('Password is required');
+        return;
+      }
+
+      const parsed = OmniStorage.parseUrl(domainVal);
+      await OmniStorage.saveCredential({
+        id,
+        origin: parsed.origin,
+        hostname: parsed.hostname,
+        protocol: parsed.protocol,
+        port: parsed.port,
+        username,
+        password,
+        userModified: true
+      });
+
+      if (currentTab && currentTab.id) {
+        try {
+          await chrome.tabs.sendMessage(currentTab.id, { type: 'REFRESH_CREDENTIALS' });
+        } catch (err) {
+          // Tab may not have content script running
+        }
+      }
+
+      closeEditModal();
+      showToast('Login updated successfully!');
+      renderCurrentSiteCredentials();
+      renderVaultList();
+      updateTabBadge();
+    });
+  }
 
   // Vault Search & Filter events
   vaultSearchInput.addEventListener('input', renderVaultList);
